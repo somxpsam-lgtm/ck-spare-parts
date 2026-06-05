@@ -1,0 +1,1 @@
+- [Clerk @clerk/react@5.54.0 + @clerk/shared@3.47.7 shim](clerk-ui-shim.md) — loadClerkUiScript must be patched into @clerk/shared@3.47.7 with __unstable_ClerkUiCtor normalization.

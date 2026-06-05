@@ -1,0 +1,254 @@
+
+
+🚀 CK GROUP – PROFESSIONAL SPARE PARTS INVENTORY MANAGEMENT SYSTEM
+एक आधुनिक, तेज, सुरक्षित और प्रोफेशनल Spare Parts Inventory Management App बनाएं जिसका नाम CK Group हो। यह ऐप इंडस्ट्रियल, फैक्ट्री, वर्कशॉप और मशीनरी स्पेयर पार्ट्स के स्टॉक, खर्च, रिपोर्ट और मासिक विश्लेषण को मैनेज करने के लिए बनाया जाए।
+🎨 DESIGN REQUIREMENTS
+UI Style
+Professional Industrial Design
+Modern Dark Theme
+Premium Blue Accent Color
+Smooth Animations
+Rounded Cards
+Responsive Mobile Design
+Fast Loading Interface
+Clean Dashboard Layout
+Language
+App में केवल English Language उपयोग होगी।
+सभी Buttons, Menus, Forms, Reports और Notifications English में होंगे।
+🔐 AUTHENTICATION SYSTEM
+Login Options
+Email Login
+Password Login
+Google Login
+Forgot Password
+Secure Session Management
+User Roles
+Admin
+Full Access
+Manage Users
+Add/Edit/Delete Parts
+Reports Access
+Staff
+Add Parts
+Update Stock
+View Reports
+Viewer
+Read Only Access
+🏠 DASHBOARD
+Dashboard पर निम्न जानकारी दिखे:
+Summary Cards
+Total Parts
+Total Inventory Value
+Total Categories
+Low Stock Items
+Out Of Stock Items
+Monthly Expense
+Monthly Purchase Value
+Quick Actions
+Add New Part
+Search Parts
+Generate Reports
+Export Data
+Recent Activity
+Newly Added Parts
+Updated Parts
+Deleted Parts
+Stock Movement History
+📦 PARTS MANAGEMENT
+Add New Part
+Image Upload
+Upload Part Image
+JPEG Support
+PNG Support
+WEBP Support
+Auto Compression
+Max Size 1MB
+Multiple Images Support
+BASIC INFORMATION
+Fields
+Part Name *
+Example:
+Motor Bearing
+Model Number *
+Example:
+MTR-2024-B
+Storage Location
+Example:
+Locker A-12, Shelf-3
+Category
+Dropdown List:
+Electrical
+Mechanical
+Bearing
+Motor
+Hydraulic
+Pneumatic
+Tool
+Consumable
+Safety Equipment
+Other
+📊 STOCK & PRICING
+Fields
+Quantity
+Numeric Input
+Unit Price (₹)
+Currency Input
+Low Stock Threshold
+Numeric Input
+Total Value
+Auto Calculation
+Formula:
+Quantity × Unit Price
+Real Time Calculation
+🔧 PART CONDITION
+Options
+New Part
+Brand New Item
+Used / Old Part
+Previously Used Item
+Single Selection Only
+🔔 LOW STOCK ALERT SYSTEM
+जब Quantity Threshold से कम हो जाए:
+Alert Features
+Dashboard Alert
+Push Notification
+Warning Badge
+Highlight Row
+Low Stock Report Entry
+🔍 SEARCH & FILTER SYSTEM
+Search By
+Part Name
+Model Number
+Category
+Location
+Filters
+New Parts
+Used Parts
+Low Stock
+Out Of Stock
+High Value Parts
+Category Wise
+✏️ EDIT PART
+Features
+Edit Details
+Update Stock
+Update Price
+Change Images
+Change Category
+Change Location
+🗑️ DELETE PART
+Features
+Confirmation Popup
+Soft Delete
+Restore Deleted Data
+📈 ADVANCED REPORTING SYSTEM
+Inventory Report
+Display:
+Total Parts
+Total Quantity
+Total Stock Value
+Low Stock Report
+Display:
+Critical Items
+Required Reorder Quantity
+Category Wise Report
+Display:
+Category Name
+Total Parts
+Total Value
+💰 MONTHLY EXPENSE TRACKING SYSTEM (NEW FEATURE)
+एक नया Advanced Monthly Expense Tracking Module बनाएं।
+Purpose
+हर महीने किस Category पर कितना खर्च हुआ है यह ट्रैक करना।
+Monthly Expense Dashboard
+हर महीने के लिए एक अलग रिपोर्ट शीट बने।
+Example
+January 2026
+Electrical = ₹25,000
+Mechanical = ₹40,000
+Bearing = ₹15,000
+Hydraulic = ₹30,000
+Total Expense = ₹1,10,000
+February 2026
+Electrical = ₹35,000
+Mechanical = ₹20,000
+Bearing = ₹18,000
+Hydraulic = ₹45,000
+Total Expense = ₹1,18,000
+📊
+[6/5/2026 11:49 PM] Danis Kumar: Monthly Analysis Features
+Show
+Month Wise Expense
+Category Wise Expense
+Total Monthly Purchase
+Highest Expense Category
+Lowest Expense Category
+Expense Growth Percentage
+Previous Month Comparison
+📉 Expense Analytics
+Charts
+Monthly Expense Bar Chart
+Category Expense Pie Chart
+Yearly Expense Trend Graph
+Monthly Purchase Graph
+📅 Monthly Expense Sheet
+हर महीने की एक अलग Expense Sheet Auto Generate हो।
+Columns:
+Date
+Part Name
+Category
+Quantity Purchased
+Unit Price
+Total Cost
+Supplier Name
+Notes
+📆 YEARLY SUMMARY REPORT
+Display:
+Total Annual Expense
+Most Expensive Category
+Highest Spending Month
+Lowest Spending Month
+Total Purchased Parts
+📥 EXPORT SYSTEM
+Export Formats
+PDF
+Excel
+CSV
+Share Options
+Email
+WhatsApp
+Download
+📷 QR & BARCODE SYSTEM
+Features
+Barcode Scanner
+QR Scanner
+Auto Part Search
+Quick Stock Update
+☁️ CLOUD DATABASE
+Use:
+Firebase Authentication
+Firestore Database
+Firebase Storage
+Features
+Real-Time Sync
+Multi Device Support
+Automatic Backup
+Secure Data Storage
+⚙️ SETTINGS
+Features
+Company Name
+Company Logo Upload
+Backup Data
+Restore Data
+Dark Theme
+Light Theme
+Notification Settings
+📱 BOTTOM NAVIGATION
+Tabs
+Dashboard
+Parts
+Reports
+Monthly Expense
+Settings
+🎯 FINAL GOAL
+Create a fully professional Spare Parts Inventory Management System for CK Group that allows complete inventory control, stock tracking, low stock alerts, image management, QR/Barcode support, monthly expense tracking, category-wise expense analysis, yearly reports, cloud synchronization, export functionality, and real-time analytics with a premium modern user experience

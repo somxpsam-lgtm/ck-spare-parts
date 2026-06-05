@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- CK Group Industrial Gear Logo -->
+  <g transform="translate(10, 10)">
+    <!-- Gear outer -->
+    <path d="M20 2c1.5-2.5 5.5-2.5 7 0l2 3.5a16 16 0 0 1 5.5 2.5l3.5-1.5c2.5-1 6 1 6 4v4a16 16 0 0 1 4 5.5l4-1.5c2.5-.5 5 2.5 3.5 5l-2 3.5a16 16 0 0 1 0 6l2 3.5c1.5 2.5-1 5.5-3.5 5l-4-1.5a16 16 0 0 1-4 5.5v4c0 3-3.5 5-6 4l-3.5-1.5a16 16 0 0 1-5.5 2.5l-2 3.5c-1.5 2.5-5.5 2.5-7 0l-2-3.5a16 16 0 0 1-5.5-2.5l-3.5 1.5c-2.5 1-6-1-6-4v-4a16 16 0 0 1-4-5.5l-4 1.5c-2.5.5-5-2.5-3.5-5l2-3.5a16 16 0 0 1 0-6l-2-3.5c-1.5-2.5 1-5.5 3.5-5l4 1.5a16 16 0 0 1 4-5.5v-4c0-3 3.5-5 6-4l3.5 1.5A16 16 0 0 1 18 5.5L20 2z" fill="#3B82F6" />
+    <!-- Gear inner cutout -->
+    <circle cx="23.5" cy="23.5" r="9" fill="#0d1117" />
+    <!-- C inside gear -->
+    <path d="M26 18a5 5 0 0 0-5 5 5 5 0 0 0 5 5" fill="none" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+  <text x="65" y="38" font-family="sans-serif" font-weight="800" font-size="24" fill="#e2e8f0" letter-spacing="-0.5">CK GROUP</text>
+</svg>

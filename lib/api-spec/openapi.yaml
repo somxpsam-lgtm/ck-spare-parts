@@ -1,22 +1,33 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CK Group Spare Parts Inventory Management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: parts
+    description: Spare parts management
+  - name: categories
+    description: Category management
+  - name: stock
+    description: Stock movement tracking
+  - name: expenses
+    description: Monthly expense tracking
+  - name: reports
+    description: Reporting and analytics
+  - name: dashboard
+    description: Dashboard summary and stats
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +35,412 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /parts:
+    get:
+      operationId: listParts
+      tags: [parts]
+      summary: List all parts
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: condition
+          schema:
+            type: string
+            enum: [new, used]
+        - in: query
+          name: stockStatus
+          schema:
+            type: string
+            enum: [low, out, ok]
+        - in: query
+          name: includeDeleted
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of parts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Part"
+    post:
+      operationId: createPart
+      tags: [parts]
+      summary: Create a new part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+
+  /parts/{id}:
+    get:
+      operationId: getPart
+      tags: [parts]
+      summary: Get a part by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Part
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePart
+      tags: [parts]
+      summary: Update a part
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+    delete:
+      operationId: deletePart
+      tags: [parts]
+      summary: Soft delete a part
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+
+  /parts/{id}/restore:
+    post:
+      operationId: restorePart
+      tags: [parts]
+      summary: Restore a soft-deleted part
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /stock-movements:
+    get:
+      operationId: listStockMovements
+      tags: [stock]
+      summary: List stock movements
+      parameters:
+        - in: query
+          name: partId
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockMovement"
+    post:
+      operationId: createStockMovement
+      tags: [stock]
+      summary: Record a stock movement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockMovementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockMovement"
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List expense records
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+        - in: query
+          name: month
+          schema:
+            type: integer
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseRecord"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Add an expense record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseRecord"
+
+  /expenses/{id}:
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense record
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseRecord"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete an expense record
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Dashboard summary cards and metrics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Recent parts activity feed
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /reports/inventory:
+    get:
+      operationId: getInventoryReport
+      tags: [reports]
+      summary: Full inventory report
+      responses:
+        "200":
+          description: Inventory report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryReport"
+
+  /reports/low-stock:
+    get:
+      operationId: getLowStockReport
+      tags: [reports]
+      summary: Low stock and out-of-stock report
+      responses:
+        "200":
+          description: Low stock report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LowStockItem"
+
+  /reports/category-wise:
+    get:
+      operationId: getCategoryReport
+      tags: [reports]
+      summary: Category-wise inventory breakdown
+      responses:
+        "200":
+          description: Category report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryReport"
+
+  /reports/monthly-expense:
+    get:
+      operationId: getMonthlyExpenseReport
+      tags: [reports]
+      summary: Monthly expense analytics
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly expense report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyExpenseSummary"
+
+  /reports/yearly-summary:
+    get:
+      operationId: getYearlySummary
+      tags: [reports]
+      summary: Yearly expense and purchase summary
+      parameters:
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Yearly summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YearlySummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +451,442 @@ components:
       required:
         - status
 
+    Part:
+      type: object
+      required:
+        - id
+        - name
+        - modelNumber
+        - category
+        - condition
+        - quantity
+        - unitPrice
+        - totalValue
+        - lowStockThreshold
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        modelNumber:
+          type: string
+        location:
+          type: string
+          nullable: true
+        category:
+          type: string
+        condition:
+          type: string
+          enum: [new, used]
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalValue:
+          type: number
+        lowStockThreshold:
+          type: integer
+        imageUrls:
+          type: array
+          items:
+            type: string
+        deletedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    PartInput:
+      type: object
+      required:
+        - name
+        - modelNumber
+        - category
+        - condition
+        - quantity
+        - unitPrice
+        - lowStockThreshold
+      properties:
+        name:
+          type: string
+        modelNumber:
+          type: string
+        location:
+          type: string
+        category:
+          type: string
+        condition:
+          type: string
+          enum: [new, used]
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        lowStockThreshold:
+          type: integer
+        imageUrls:
+          type: array
+          items:
+            type: string
+
+    PartUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        modelNumber:
+          type: string
+        location:
+          type: string
+        category:
+          type: string
+        condition:
+          type: string
+          enum: [new, used]
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        lowStockThreshold:
+          type: integer
+        imageUrls:
+          type: array
+          items:
+            type: string
+
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+
+    CategoryInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    StockMovement:
+      type: object
+      required:
+        - id
+        - partId
+        - type
+        - quantity
+        - createdAt
+      properties:
+        id:
+          type: integer
+        partId:
+          type: integer
+        partName:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [in, out, adjustment]
+        quantity:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    StockMovementInput:
+      type: object
+      required:
+        - partId
+        - type
+        - quantity
+      properties:
+        partId:
+          type: integer
+        type:
+          type: string
+          enum: [in, out, adjustment]
+        quantity:
+          type: integer
+        notes:
+          type: string
+
+    ExpenseRecord:
+      type: object
+      required:
+        - id
+        - date
+        - category
+        - quantity
+        - unitPrice
+        - totalCost
+        - month
+        - year
+        - createdAt
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        partName:
+          type: string
+          nullable: true
+        category:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalCost:
+          type: number
+        supplierName:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        month:
+          type: integer
+        year:
+          type: integer
+        createdAt:
+          type: string
+
+    ExpenseInput:
+      type: object
+      required:
+        - date
+        - category
+        - quantity
+        - unitPrice
+        - totalCost
+        - month
+        - year
+      properties:
+        date:
+          type: string
+        partName:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalCost:
+          type: number
+        supplierName:
+          type: string
+        notes:
+          type: string
+        month:
+          type: integer
+        year:
+          type: integer
+
+    ExpenseUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+        partName:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalCost:
+          type: number
+        supplierName:
+          type: string
+        notes:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required:
+        - totalParts
+        - totalValue
+        - totalCategories
+        - lowStockCount
+        - outOfStockCount
+        - monthlyExpense
+        - monthlyPurchaseValue
+      properties:
+        totalParts:
+          type: integer
+        totalValue:
+          type: number
+        totalCategories:
+          type: integer
+        lowStockCount:
+          type: integer
+        outOfStockCount:
+          type: integer
+        monthlyExpense:
+          type: number
+        monthlyPurchaseValue:
+          type: number
+
+    ActivityItem:
+      type: object
+      required:
+        - id
+        - type
+        - description
+        - createdAt
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [created, updated, deleted, stock_in, stock_out]
+        description:
+          type: string
+        partName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    InventoryReport:
+      type: object
+      required:
+        - totalParts
+        - totalQuantity
+        - totalStockValue
+        - generatedAt
+      properties:
+        totalParts:
+          type: integer
+        totalQuantity:
+          type: integer
+        totalStockValue:
+          type: number
+        generatedAt:
+          type: string
+
+    LowStockItem:
+      type: object
+      required:
+        - id
+        - name
+        - modelNumber
+        - category
+        - quantity
+        - lowStockThreshold
+        - reorderNeeded
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        modelNumber:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+        lowStockThreshold:
+          type: integer
+        reorderNeeded:
+          type: integer
+        location:
+          type: string
+          nullable: true
+
+    CategoryReport:
+      type: object
+      required:
+        - category
+        - totalParts
+        - totalValue
+      properties:
+        category:
+          type: string
+        totalParts:
+          type: integer
+        totalValue:
+          type: number
+
+    CategoryExpense:
+      type: object
+      required:
+        - category
+        - amount
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+
+    MonthlyExpenseSummary:
+      type: object
+      required:
+        - month
+        - year
+        - totalExpense
+        - categoryBreakdown
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        monthName:
+          type: string
+        totalExpense:
+          type: number
+        previousMonthExpense:
+          type: number
+          nullable: true
+        growthPercentage:
+          type: number
+          nullable: true
+        highestCategory:
+          type: string
+          nullable: true
+        lowestCategory:
+          type: string
+          nullable: true
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryExpense"
+
+    YearlySummary:
+      type: object
+      required:
+        - year
+        - totalAnnualExpense
+        - highestSpendingMonth
+        - lowestSpendingMonth
+        - mostExpensiveCategory
+        - totalPurchasedParts
+      properties:
+        year:
+          type: integer
+        totalAnnualExpense:
+          type: number
+        highestSpendingMonth:
+          type: string
+        lowestSpendingMonth:
+          type: string
+        mostExpensiveCategory:
+          type: string
+        totalPurchasedParts:
+          type: integer

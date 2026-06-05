@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "CK Group - Spare Parts Inventory"
+version = "1.0.0"
+id = "artifacts/ck-group"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21481
+
+[services.development]
+run = "pnpm --filter @workspace/ck-group run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ck-group", "run", "build" ]
+publicDir = "artifacts/ck-group/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21481"
+BASE_PATH = "/"
