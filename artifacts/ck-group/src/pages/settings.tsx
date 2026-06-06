@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,74 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { HardDriveDownload, Save, Settings2 } from "lucide-react";
+import { HardDriveDownload, Save, Settings2, Upload, X, Building2, Loader2 } from "lucide-react";
+import { useAuth } from "@clerk/react";
+
+function useSettings(userId: string | null | undefined) {
+  const key = userId ? `ck_settings_${userId}` : null;
+  const load = () => {
+    if (!key) return { companyName: "CK Group", companyAddress: "Industrial Area, Phase 1", logoUrl: "" };
+    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
+  };
+  const [settings, setSettings] = useState(load);
+  const save = (update: Record<string, string>) => {
+    if (!key) return;
+    const next = { ...settings, ...update };
+    setSettings(next);
+    localStorage.setItem(key, JSON.stringify(next));
+    window.dispatchEvent(new Event("ck-settings-updated"));
+  };
+  return { settings, save };
+}
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { userId } = useAuth();
+  const { settings, save } = useSettings(userId);
+  const [companyName, setCompanyName] = useState(settings.companyName || "CK Group");
+  const [companyAddress, setCompanyAddress] = useState(settings.companyAddress || "Industrial Area, Phase 1");
+  const [logoUrl, setLogoUrl] = useState(settings.logoUrl || "");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setCompanyName(settings.companyName || "CK Group");
+    setCompanyAddress(settings.companyAddress || "Industrial Area, Phase 1");
+    setLogoUrl(settings.logoUrl || "");
+  }, [userId]);
 
   const handleSave = () => {
+    save({ companyName, companyAddress, logoUrl });
     toast({ title: "Settings saved successfully" });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/uploads", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      setLogoUrl(data.url);
+      save({ companyName, companyAddress, logoUrl: data.url });
+      toast({ title: "Logo uploaded successfully" });
+    } catch {
+      toast({ title: "Logo upload failed", variant: "destructive" });
+    } finally {
+      setIsUploadingLogo(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    const filename = logoUrl.split("/").pop();
+    if (filename) fetch(`/api/uploads/${filename}`, { method: "DELETE" }).catch(() => {});
+    setLogoUrl("");
+    save({ companyName, companyAddress, logoUrl: "" });
+    toast({ title: "Logo removed" });
   };
 
   const handleThemeToggle = () => {
@@ -28,6 +89,62 @@ export default function SettingsPage() {
           <p className="text-muted-foreground mt-1">Configure company details and app preferences</p>
         </div>
 
+        {/* Company Logo */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Company Logo
+            </CardTitle>
+            <CardDescription>Upload your company logo to display in the sidebar and dashboard.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-6">
+              {/* Preview */}
+              <div className="flex-shrink-0 h-24 w-24 rounded-xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center overflow-hidden">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Company logo" className="h-full w-full object-contain p-1" />
+                ) : (
+                  <Building2 className="h-8 w-8 text-muted-foreground/40" />
+                )}
+              </div>
+
+              <div className="flex-1 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Supported formats: PNG, JPG, JPEG, WEBP — max 10 MB
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                  >
+                    {isUploadingLogo ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading...</>
+                    ) : (
+                      <><Upload className="mr-2 h-4 w-4" />{logoUrl ? "Change Logo" : "Upload Logo"}</>
+                    )}
+                  </Button>
+                  {logoUrl && (
+                    <Button type="button" variant="outline" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
+                      <X className="mr-2 h-4 w-4" />Remove Logo
+                    </Button>
+                  )}
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Company Profile */}
         <Card>
           <CardHeader>
             <CardTitle>Company Profile</CardTitle>
@@ -37,7 +154,7 @@ export default function SettingsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name</Label>
-                <Input id="companyName" defaultValue="CK Group" />
+                <Input id="companyName" value={companyName} onChange={e => setCompanyName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">Default Currency</Label>
@@ -45,17 +162,18 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Registered Address</Label>
-                <Input id="address" defaultValue="Industrial Area, Phase 1" />
+                <Input id="address" value={companyAddress} onChange={e => setCompanyAddress(e.target.value)} />
               </div>
             </div>
             <div className="flex justify-end">
               <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
-                <Save className="mr-2 h-4 w-4" /> Save Changes
+                <Save className="mr-2 h-4 w-4" />Save Changes
               </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Preferences */}
         <Card>
           <CardHeader>
             <CardTitle>Preferences</CardTitle>
@@ -80,10 +198,11 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Advanced */}
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle className="text-muted-foreground flex items-center gap-2">
-              <Settings2 className="h-5 w-5" /> Advanced Data Management
+              <Settings2 className="h-5 w-5" />Advanced Data Management
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -93,7 +212,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">Export all inventory and movement data</p>
               </div>
               <Button variant="outline" className="shrink-0" onClick={() => toast({ title: "Backup started. This may take a moment." })}>
-                <HardDriveDownload className="mr-2 h-4 w-4" /> Download CSV
+                <HardDriveDownload className="mr-2 h-4 w-4" />Download CSV
               </Button>
             </div>
           </CardContent>

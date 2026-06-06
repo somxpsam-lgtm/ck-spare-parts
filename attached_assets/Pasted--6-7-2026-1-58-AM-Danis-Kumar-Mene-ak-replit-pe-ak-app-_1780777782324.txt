@@ -1,0 +1,158 @@
+[6/7/2026 1:58 AM] Danis Kumar: ￼
+￼
+￼
+￼
+￼
+Mene ak replit pe ak app banaya hai to app mai jo jo problem horaha hai bo sab mai tumi ko samjhaoo ga or tumi on sab problem ko son ker onn problem ka solution ke sath easy way mai samaj ne wala ak prompt likhke dena hai oss prompt ko mai replit ko dong jiss ko samaj ke replit moje app ke problem ko slove kar ke de mojhe ok 1/Dashboard pe recent activity ke name ko damo Data dikha raha hai one hata recent activity clear hona chahiye kiu ki app new frash hai.2/stock movement pe stock date edit ka option hona chahiye jisse ki stock data galat ho to edit/delete ka option hona chahiye .3/Expenses pe vi Data edit/delete ka option hona chahiye 4/report pe april.may. june ka date clear hona chahiye kiu ki app new hai to castomer dekhe ga to soche ka ke aa old data new app mai kese or kahase aya to ess liye simple way may balo to app mai koi tasting old data nahi rehana nahi chahiye.or ak bat app ke Dashboard pe company ka logo icon lagane ka box hona chahiye jisse logo icon add kar paoo .ok ab aa sab problem ko pado or socho or ak details mai ak prompt likke do app ka data firebase ke sath connect ho or jish gmail se app mai login hoga osi Gmail ke sath costomer ka app ke all personal data firebase se connected or save rahe.ok aa sab detels prompt mai likke do 
+
+नीचे दिया गया प्रॉम्प्ट सीधे Replit AI को दे सकते हो:
+Spare Parts Manager App – Complete Fix & Upgrade Request
+Please update and fix my Spare Parts Manager App with the following requirements.
+1. Dashboard → Recent Activity Problem
+Currently the Dashboard is showing demo/sample activity records even though the app is new.
+Required Fix:
+Remove all demo/sample Recent Activity data.
+When a new account is created, Recent Activity should be completely empty.
+Show a message:
+"No recent activity found"
+Recent Activity should only display real activities performed by the logged-in user.
+No hardcoded or test data should appear anywhere.
+2. Stock Movements → Edit & Delete Feature
+Currently Stock Movements only shows records.
+Required Fix:
+Add action buttons for every stock movement record:
+Edit Button
+Delete Button
+Edit Function:
+User should be able to edit:
+Date
+Part Name
+Quantity
+Notes
+Movement Type (Stock In / Stock Out)
+Delete Function:
+Ask for confirmation before deleting.
+After deletion, Dashboard statistics should automatically update.
+3. Expenses → Edit & Delete Feature
+Currently expense records cannot be modified.
+Required Fix:
+For every expense record add:
+Edit Button
+Delete Button
+Editable Fields:
+Date
+Item Name
+Category
+Amount
+Notes
+Delete Function:
+Confirmation popup before delete.
+Dashboard monthly expense should update automatically.
+4. Remove All Demo/Test Data
+The app currently contains old sample records such as:
+April data
+May data
+June data
+Sample expenses
+Sample stock movements
+Sample activities
+Required Fix:
+Remove ALL hardcoded demo data.
+New users should start with a completely clean database.
+No test records should appear anywhere.
+Customer should only see the data that they personally enter.
+5. Company Logo Upload Feature
+Required Fix:
+Add a Company Logo section inside Settings.
+Features:
+Upload Logo
+Change Logo
+Remove Logo
+Preview Logo
+After upload:
+Logo should appear in Sidebar.
+Logo should appear on Dashboard.
+Logo should be saved permanently.
+Supported formats:
+PNG
+JPG
+JPEG
+WEBP
+6. Firebase Integration (Very Important)
+Connect the entire application with Firebase.
+Authentication:
+Login with Gmail (Google Sign-In)
+Secure Firebase Authentication
+Database:
+Use Firebase Firestore.
+Data Rules:
+Every logged-in user must have their own separate data.
+Example:
+User A logs in with:
+abc@gmail.com
+User B logs in with:
+xyz@gmail.com
+Then:
+User A should only see User A's data.
+User B should only see User B's data.
+No data should be shared between users.
+7. Save Everything in Firebase
+[6/7/2026 1:58 AM] Danis Kumar: The following data must be stored in Firebase:
+Spare Parts
+Name
+Category
+Quantity
+Price
+Stock Level
+Categories
+Category Name
+Description
+Stock Movements
+Date
+Quantity
+Notes
+Type
+Expenses
+Date
+Amount
+Category
+Item Name
+Reports
+Dashboard Statistics
+Company Logo
+User Settings
+Everything must remain saved even after logout and login.
+8. Real-Time Dashboard
+Dashboard should automatically update when:
+New part added
+Part deleted
+Expense added
+Expense edited
+Expense deleted
+Stock movement added
+Stock movement edited
+Stock movement deleted
+No manual refresh should be required.
+9. New Account Experience
+When a user creates a new account:
+Dashboard should show:
+Total Parts = 0
+Total Value = ₹0
+Monthly Expense = ₹0
+Monthly Purchase = ₹0
+Categories = 0
+Recent Activity = Empty
+No demo data should appear.
+10. Final Quality Check
+Before deployment verify:
+✅ No hardcoded data
+✅ No sample/demo records
+✅ Firebase connected properly
+✅ Google Login working
+✅ User data isolated per Gmail account
+✅ Stock Movement Edit/Delete working
+✅ Expense Edit/Delete working
+✅ Company Logo Upload working
+✅ Dashboard auto-refresh working
+✅ Clean first-time user experience
+Please implement all fixes professionally without breaking existing functionality.

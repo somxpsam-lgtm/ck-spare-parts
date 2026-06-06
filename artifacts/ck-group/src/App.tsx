@@ -141,8 +141,8 @@ function ClerkProviderWithRoutes() {
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+      routerPush={(to: string) => setLocation(stripBase(to))}
+      routerReplace={(to: string) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
