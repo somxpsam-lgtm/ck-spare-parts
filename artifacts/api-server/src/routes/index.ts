@@ -6,6 +6,7 @@ import stockRouter from "./stock";
 import expensesRouter from "./expenses";
 import dashboardRouter from "./dashboard";
 import reportsRouter from "./reports";
+import uploadsRouter from "./uploads";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/stock-movements", stockRouter);
 router.use("/expenses", expensesRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/reports", reportsRouter);
+router.use("/uploads", uploadsRouter);
 
 export default router;

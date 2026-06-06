@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { ImageUploader } from "@/components/ImageUploader";
 
 const partSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -33,7 +33,7 @@ const partSchema = z.object({
   quantity: z.coerce.number().min(0, "Must be positive"),
   unitPrice: z.coerce.number().min(0, "Must be positive"),
   lowStockThreshold: z.coerce.number().min(0, "Must be positive"),
-  imageUrls: z.string().optional(), // Comma separated for form simplicity
+  imageUrls: z.array(z.string()).default([]),
 });
 
 export default function PartFormPage() {
@@ -64,7 +64,7 @@ export default function PartFormPage() {
       quantity: 0,
       unitPrice: 0,
       lowStockThreshold: 5,
-      imageUrls: "",
+      imageUrls: [],
     }
   });
 
@@ -79,19 +79,17 @@ export default function PartFormPage() {
         quantity: part.quantity,
         unitPrice: part.unitPrice,
         lowStockThreshold: part.lowStockThreshold,
-        imageUrls: part.imageUrls?.join(", ") || "",
+        imageUrls: part.imageUrls ?? [],
       });
     }
   }, [part, isNew, form]);
 
   const onSubmit = (values: z.infer<typeof partSchema>) => {
-    const imageUrls = values.imageUrls ? values.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : undefined;
-    
     if (isNew) {
       createMutation.mutate({
         data: {
           ...values,
-          imageUrls,
+          imageUrls: values.imageUrls,
           condition: values.condition as PartInputCondition,
         }
       }, {
@@ -105,7 +103,7 @@ export default function PartFormPage() {
         id: partId,
         data: {
           ...values,
-          imageUrls,
+          imageUrls: values.imageUrls,
           condition: values.condition as PartUpdateCondition,
         }
       }, {
@@ -260,9 +258,13 @@ export default function PartFormPage() {
                     name="imageUrls"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Image URLs (comma separated)</FormLabel>
+                        <FormLabel>Part Images</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" {...field} className="resize-none" />
+                          <ImageUploader
+                            value={field.value}
+                            onChange={field.onChange}
+                            maxImages={5}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
