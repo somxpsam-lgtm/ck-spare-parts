@@ -208,6 +208,8 @@ export const ListStockMovementsResponseItem = zod.object({
   "type": zod.enum(['in', 'out', 'adjustment']),
   "quantity": zod.number(),
   "notes": zod.string().nullish(),
+  "whereUsed": zod.string().nullish(),
+  "date": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListStockMovementsResponse = zod.array(ListStockMovementsResponseItem)
@@ -220,7 +222,9 @@ export const CreateStockMovementBody = zod.object({
   "partId": zod.number(),
   "type": zod.enum(['in', 'out', 'adjustment']),
   "quantity": zod.number(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "whereUsed": zod.string().optional(),
+  "date": zod.string().optional()
 })
 
 

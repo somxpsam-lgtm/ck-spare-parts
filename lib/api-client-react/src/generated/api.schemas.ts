@@ -100,6 +100,8 @@ export interface StockMovement {
   type: StockMovementType;
   quantity: number;
   notes?: string | null;
+  whereUsed?: string | null;
+  date?: string | null;
   createdAt: string;
 }
 
@@ -117,6 +119,8 @@ export interface StockMovementInput {
   type: StockMovementInputType;
   quantity: number;
   notes?: string;
+  whereUsed?: string;
+  date?: string;
 }
 
 export interface ExpenseRecord {

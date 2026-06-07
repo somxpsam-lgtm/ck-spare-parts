@@ -12,4 +12,6 @@ export interface StockMovementInput {
   type: StockMovementInputType;
   quantity: number;
   notes?: string;
+  whereUsed?: string;
+  date?: string;
 }

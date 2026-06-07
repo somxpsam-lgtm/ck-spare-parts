@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/parts", label: "Spare Parts", icon: Package },
   { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/stock-movements", label: "Stock Movements", icon: ArrowRightLeft },
+  { href: "/stock-movements", label: "Material/Parts Used", icon: ArrowRightLeft },
   { href: "/expenses", label: "Expenses", icon: CreditCard },
   { href: "/reports", label: "Reports", icon: FileBarChart },
   { href: "/settings", label: "Settings", icon: Settings },

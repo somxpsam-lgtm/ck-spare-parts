@@ -46,6 +46,7 @@ export const stockMovementsTable = pgTable("stock_movements", {
   type: text("type").notNull(),
   quantity: integer("quantity").notNull(),
   notes: text("notes"),
+  whereUsed: text("where_used"),
   date: text("date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

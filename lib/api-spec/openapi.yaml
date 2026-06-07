@@ -604,6 +604,12 @@ components:
         notes:
           type: string
           nullable: true
+        whereUsed:
+          type: string
+          nullable: true
+        date:
+          type: string
+          nullable: true
         createdAt:
           type: string
 
@@ -622,6 +628,10 @@ components:
         quantity:
           type: integer
         notes:
+          type: string
+        whereUsed:
+          type: string
+        date:
           type: string
 
     ExpenseRecord:

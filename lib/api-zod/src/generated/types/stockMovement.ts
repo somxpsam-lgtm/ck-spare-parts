@@ -14,5 +14,7 @@ export interface StockMovement {
   type: StockMovementType;
   quantity: number;
   notes?: string | null;
+  whereUsed?: string | null;
+  date?: string | null;
   createdAt: string;
 }
