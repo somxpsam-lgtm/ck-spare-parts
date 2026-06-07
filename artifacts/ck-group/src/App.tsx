@@ -5,6 +5,7 @@ import { Switch, Route, Redirect, Router as WouterRouter, useLocation } from 'wo
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 // Pages
 import LandingPage from "@/pages/landing";
@@ -109,6 +110,20 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return <Component />;
 }
 
+function ClerkAuthTokenSetter() {
+  const { getToken, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    setAuthTokenGetter(async () => {
+      if (!isSignedIn) return null;
+      return getToken();
+    });
+    return () => { setAuthTokenGetter(null); };
+  }, [getToken, isSignedIn]);
+
+  return null;
+}
+
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const qc = useQueryClient();
@@ -145,6 +160,7 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to: string) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
+        <ClerkAuthTokenSetter />
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
           <Switch>
