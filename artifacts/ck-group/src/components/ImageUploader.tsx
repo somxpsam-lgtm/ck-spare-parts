@@ -1,6 +1,8 @@
 import React, { useCallback, useRef, useState } from "react";
 import { UploadCloud, X, ImageIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 
 interface ImageUploaderProps {
   value: string[];
@@ -12,6 +14,7 @@ interface UploadingItem {
   id: string;
   name: string;
   preview: string;
+  progress: number;
   status: "uploading" | "done" | "error";
   error?: string;
 }
@@ -21,17 +24,31 @@ export function ImageUploader({ value, onChange, maxImages = 5 }: ImageUploaderP
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState<UploadingItem[]>([]);
 
-  const uploadFile = useCallback(async (file: File): Promise<string | null> => {
-    const formData = new FormData();
-    formData.append("image", file);
+  const uploadFile = useCallback(async (
+    file: File,
+    itemId: string,
+    onProgress: (p: number) => void
+  ): Promise<string | null> => {
     try {
-      const res = await fetch("/api/uploads", { method: "POST", body: formData });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Upload failed" }));
-        throw new Error(err.error || "Upload failed");
-      }
-      const data = await res.json();
-      return data.url as string;
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const uniqueName = `parts/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const storageRef = ref(storage, uniqueName);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      return await new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            onProgress(pct);
+          },
+          (error) => reject(error),
+          async () => {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(url);
+          }
+        );
+      });
     } catch {
       return null;
     }
@@ -47,6 +64,7 @@ export function ImageUploader({ value, onChange, maxImages = 5 }: ImageUploaderP
       id: `${Date.now()}-${Math.random()}`,
       name: f.name,
       preview: URL.createObjectURL(f),
+      progress: 0,
       status: "uploading" as const,
     }));
 
@@ -54,12 +72,17 @@ export function ImageUploader({ value, onChange, maxImages = 5 }: ImageUploaderP
 
     const results = await Promise.all(
       toUpload.map(async (file, idx) => {
-        const url = await uploadFile(file);
+        const item = newItems[idx];
+        const url = await uploadFile(file, item.id, (pct) => {
+          setUploading((prev) =>
+            prev.map((u) => u.id === item.id ? { ...u, progress: pct } : u)
+          );
+        });
         setUploading((prev) =>
-          prev.map((item) =>
-            item.id === newItems[idx].id
-              ? { ...item, status: url ? "done" : "error", error: url ? undefined : "Upload failed" }
-              : item
+          prev.map((u) =>
+            u.id === item.id
+              ? { ...u, status: url ? "done" : "error", progress: 100, error: url ? undefined : "Upload failed" }
+              : u
           )
         );
         return url;
@@ -101,9 +124,11 @@ export function ImageUploader({ value, onChange, maxImages = 5 }: ImageUploaderP
   const removeUrl = useCallback(
     async (url: string) => {
       onChange(value.filter((u) => u !== url));
-      const filename = url.split("/").pop();
-      if (filename) {
-        fetch(`/api/uploads/${filename}`, { method: "DELETE" }).catch(() => {});
+      try {
+        const storageRef = ref(storage, url);
+        await deleteObject(storageRef);
+      } catch {
+        // Silently ignore delete errors (file may not exist or permissions differ)
       }
     },
     [value, onChange]
@@ -194,9 +219,18 @@ export function ImageUploader({ value, onChange, maxImages = 5 }: ImageUploaderP
                 alt={item.name}
                 className="h-full w-full object-cover opacity-50"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 gap-1.5">
                 {item.status === "uploading" && (
-                  <Loader2 className="h-7 w-7 text-white animate-spin" />
+                  <>
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    <span className="text-xs text-white font-medium">{item.progress}%</span>
+                    <div className="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-200"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </>
                 )}
                 {item.status === "error" && (
                   <div className="text-center px-2">
