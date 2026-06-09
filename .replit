@@ -42,3 +42,7 @@ channel = "stable-25_05"
 
 [userenv.shared]
 SUPABASE_URL = "https://ehocyyajlyuqadqtadrs.supabase.co"
+SUPABASE_PG_HOST = "aws-0-ap-southeast-1.pooler.supabase.com"
+SUPABASE_PG_USER = "postgres.ehocyyajlyuqadqtadrs"
+SUPABASE_PG_DB = "postgres"
+SUPABASE_PG_PORT = "6543"

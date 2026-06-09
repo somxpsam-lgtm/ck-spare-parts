@@ -9,7 +9,6 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
-import { UPLOADS_DIR } from "./routes/uploads";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -49,7 +48,6 @@ app.use(
   })),
 );
 
-app.use("/api/uploads", express.static(UPLOADS_DIR));
 app.use("/api", router);
 
 export default app;
