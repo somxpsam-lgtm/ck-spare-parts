@@ -18,8 +18,7 @@
       "bundleIdentifier": "com.ckgroup.mobile"
     },
     "android": {
-      "package": "com.ckgroup.appck",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.ckgroup.appck"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
