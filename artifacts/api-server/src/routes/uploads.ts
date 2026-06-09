@@ -3,6 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import multer from "multer";
 import path from "node:path";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
+import fs from "node:fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const router = Router();
 
