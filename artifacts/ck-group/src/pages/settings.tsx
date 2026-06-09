@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { HardDriveDownload, Save, Settings2, Upload, X, Building2, Loader2 } from "lucide-react";
+import { HardDriveDownload, Save, Settings2, Upload, X, Building2, Loader2, Receipt, Phone, Mail } from "lucide-react";
 import { useAuth } from "@clerk/react";
 
 function useSettings(userId: string | null | undefined) {
   const key = userId ? `ck_settings_${userId}` : null;
   const load = () => {
-    if (!key) return { companyName: "CK Group", companyAddress: "Industrial Area, Phase 1", logoUrl: "" };
+    if (!key) return { companyName: "CK Group", companyAddress: "Industrial Area, Phase 1", logoUrl: "", gstNumber: "", contactPhone: "", contactEmail: "" };
     try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
   };
   const [settings, setSettings] = useState(load);
@@ -37,14 +37,22 @@ export default function SettingsPage() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  // New fields
+  const [gstNumber, setGstNumber] = useState(settings.gstNumber || "");
+  const [contactPhone, setContactPhone] = useState(settings.contactPhone || "");
+  const [contactEmail, setContactEmail] = useState(settings.contactEmail || "");
+
   useEffect(() => {
     setCompanyName(settings.companyName || "CK Group");
     setCompanyAddress(settings.companyAddress || "Industrial Area, Phase 1");
     setLogoUrl(settings.logoUrl || "");
+    setGstNumber(settings.gstNumber || "");
+    setContactPhone(settings.contactPhone || "");
+    setContactEmail(settings.contactEmail || "");
   }, [userId]);
 
   const handleSave = () => {
-    save({ companyName, companyAddress, logoUrl });
+    save({ companyName, companyAddress, logoUrl, gstNumber, contactPhone, contactEmail });
     toast({ title: "Settings saved successfully" });
   };
 
@@ -59,7 +67,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setLogoUrl(data.url);
-      save({ companyName, companyAddress, logoUrl: data.url });
+      save({ companyName, companyAddress, logoUrl: data.url, gstNumber, contactPhone, contactEmail });
       toast({ title: "Logo uploaded successfully" });
     } catch {
       toast({ title: "Logo upload failed", variant: "destructive" });
@@ -73,7 +81,7 @@ export default function SettingsPage() {
     const filename = logoUrl.split("/").pop();
     if (filename) fetch(`/api/uploads/${filename}`, { method: "DELETE" }).catch(() => {});
     setLogoUrl("");
-    save({ companyName, companyAddress, logoUrl: "" });
+    save({ companyName, companyAddress, logoUrl: "", gstNumber, contactPhone, contactEmail });
     toast({ title: "Logo removed" });
   };
 
@@ -163,6 +171,66 @@ export default function SettingsPage() {
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Registered Address</Label>
                 <Input id="address" value={companyAddress} onChange={e => setCompanyAddress(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
+                <Save className="mr-2 h-4 w-4" />Save Changes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Business Contact & Tax Details (new) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              Business Contact &amp; Tax Details
+            </CardTitle>
+            <CardDescription>GST number and contact info printed on reports and invoices.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="gstNumber" className="flex items-center gap-1.5">
+                  <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                  GST Number
+                </Label>
+                <Input
+                  id="gstNumber"
+                  value={gstNumber}
+                  onChange={e => setGstNumber(e.target.value.toUpperCase())}
+                  placeholder="e.g. 22AAAAA0000A1Z5"
+                  maxLength={15}
+                  className="font-mono tracking-wider"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactPhone" className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                  Contact Phone
+                </Label>
+                <Input
+                  id="contactPhone"
+                  value={contactPhone}
+                  onChange={e => setContactPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  type="tel"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail" className="flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                  Contact Email
+                </Label>
+                <Input
+                  id="contactEmail"
+                  value={contactEmail}
+                  onChange={e => setContactEmail(e.target.value)}
+                  placeholder="accounts@company.com"
+                  type="email"
+                />
               </div>
             </div>
             <div className="flex justify-end">

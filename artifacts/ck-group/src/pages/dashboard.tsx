@@ -4,13 +4,24 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import {
   getGetDashboardSummaryQueryOptions,
   getGetRecentActivityQueryOptions,
+  useGetMonthlyExpenseReport,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, TrendingDown, TrendingUp, AlertTriangle, BoxSelect, History, IndianRupee } from "lucide-react";
+import { Package, TrendingDown, TrendingUp, AlertTriangle, BoxSelect, History, IndianRupee, BarChart2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
 import type { DashboardSummary, ActivityItem } from "@workspace/api-client-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 export default function DashboardPage() {
   const { data: summary, isLoading: isLoadingSummary } = useQuery<DashboardSummary>({
@@ -22,6 +33,18 @@ export default function DashboardPage() {
     ...getGetRecentActivityQueryOptions({ limit: 10 }),
     refetchInterval: 30000,
   });
+
+  const currentYear = new Date().getFullYear();
+  const { data: monthlyData, isLoading: isLoadingTrend } = useGetMonthlyExpenseReport({ year: currentYear });
+
+  const trendData = React.useMemo(() => {
+    if (!monthlyData?.length) return [];
+    return monthlyData.map((m) => ({
+      month: m.monthName?.substring(0, 3) ?? `M${m.month}`,
+      expense: m.totalExpense ?? 0,
+      prev: m.previousMonthExpense ?? 0,
+    }));
+  }, [monthlyData]);
 
   const formatCurrency = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
@@ -52,6 +75,71 @@ export default function DashboardPage() {
           <StatCard title="Low Stock" value={summary?.lowStockCount} icon={<AlertTriangle className="h-4 w-4 text-amber-500" />} isLoading={isLoadingSummary} />
           <StatCard title="Categories" value={summary?.totalCategories} icon={<BoxSelect className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} />
         </div>
+
+        {/* ── TREND GRAPH (new) ─────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5" />
+              Monthly Expense Trend — {currentYear}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingTrend ? (
+              <Skeleton className="h-56 w-full" />
+            ) : trendData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-56 text-center gap-3">
+                <BarChart2 className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">No expense data for {currentYear} yet</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradExpense" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={52}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [formatCurrency(value), "Expense"]}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "12px", color: "hsl(var(--muted-foreground))" }} />
+                  <Area
+                    type="monotone"
+                    dataKey="expense"
+                    name="Monthly Expense"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill="url(#gradExpense)"
+                    dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
