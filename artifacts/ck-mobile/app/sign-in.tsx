@@ -1,8 +1,10 @@
-import { useSignIn } from "@clerk/expo";
+import { useSignIn, useSSO } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
+import * as AuthSession from "expo-auth-session";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,29 +19,58 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 
+// Handle any pending authentication sessions
+WebBrowser.maybeCompleteAuthSession();
+
+// Preloads the browser for Android devices to reduce authentication load time
+const useWarmUpBrowser = () => {
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
+};
+
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+  useWarmUpBrowser();
+  const { signIn } = useSignIn();
+  const { startSSOFlow } = useSSO();
   const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async () => {
-    if (!isLoaded || !email || !password) return;
+    if (!signIn || !email || !password) return;
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.create({
-        identifier: email,
+      const { error: signInError } = await signIn.password({
+        emailAddress: email,
         password,
       });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
+      if (signInError) {
+        setError(
+          (signInError as { message?: string }).message ??
+            "Sign in failed. Please try again."
+        );
+        return;
+      }
+      if (signIn.status === "complete") {
+        await signIn.finalize({
+          navigate: () => {
+            router.replace("/(tabs)");
+          },
+        });
+      } else {
+        setError("Sign in could not be completed. Please try again.");
       }
     } catch (err: unknown) {
       const clerkErr = err as { errors?: { message: string }[] };
@@ -50,6 +81,29 @@ export default function SignInScreen() {
       setLoading(false);
     }
   };
+
+  const handleGoogleSignIn = useCallback(async () => {
+    setGoogleLoading(true);
+    setError("");
+    try {
+      const { createdSessionId, setActive: setSSOActive } = await startSSOFlow({
+        strategy: "oauth_google",
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+      if (createdSessionId && setSSOActive) {
+        await setSSOActive({ session: createdSessionId });
+        router.replace("/(tabs)");
+      }
+    } catch (err: unknown) {
+      const clerkErr = err as { errors?: { message: string }[] };
+      setError(
+        clerkErr.errors?.[0]?.message ??
+          "Google sign in failed. Please try again."
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [startSSOFlow, router]);
 
   const s = styles(colors);
 
@@ -127,6 +181,34 @@ export default function SignInScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={s.signInBtnText}>Sign In</Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={s.dividerRow}>
+          <View style={s.dividerLine} />
+          <Text style={s.dividerText}>or</Text>
+          <View style={s.dividerLine} />
+        </View>
+
+        <TouchableOpacity
+          style={[s.googleBtn, googleLoading && s.signInBtnDisabled]}
+          onPress={handleGoogleSignIn}
+          disabled={googleLoading}
+          activeOpacity={0.85}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color={colors.foreground} />
+          ) : (
+            <>
+              <Image
+                source={{
+                  uri: "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",
+                }}
+                style={s.googleIcon}
+                contentFit="contain"
+              />
+              <Text style={s.googleBtnText}>Continue with Google</Text>
+            </>
           )}
         </TouchableOpacity>
       </View>
@@ -243,6 +325,42 @@ export default function SignInScreen() {
         color: "#fff",
         fontFamily: "Inter_600SemiBold",
         fontSize: 16,
+      },
+      dividerRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        marginVertical: 20,
+      },
+      dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: c.border,
+      },
+      dividerText: {
+        fontSize: 13,
+        color: c.mutedForeground,
+        fontFamily: "Inter_400Regular",
+      },
+      googleBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        backgroundColor: c.background,
+        borderWidth: 1,
+        borderColor: c.border,
+        borderRadius: c.radius,
+        height: 48,
+      },
+      googleIcon: {
+        width: 18,
+        height: 18,
+      },
+      googleBtnText: {
+        color: c.foreground,
+        fontFamily: "Inter_600SemiBold",
+        fontSize: 15,
       },
     });
   }

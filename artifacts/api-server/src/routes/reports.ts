@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import { partsTable, expenseRecordsTable } from "@workspace/db";
-import { isNull, sql, asc } from "drizzle-orm";
+import { isNull, sql, asc, and, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -13,10 +14,13 @@ const MONTH_NAMES = [
 // GET /reports/inventory
 router.get("/inventory", async (req, res) => {
   try {
+    const { userId } = getAuth(req);
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
     const parts = await db
       .select()
       .from(partsTable)
-      .where(isNull(partsTable.deletedAt));
+      .where(and(eq(partsTable.userId, userId), isNull(partsTable.deletedAt)));
 
     let totalQuantity = 0;
     let totalStockValue = 0;
@@ -41,10 +45,13 @@ router.get("/inventory", async (req, res) => {
 // GET /reports/low-stock
 router.get("/low-stock", async (req, res) => {
   try {
+    const { userId } = getAuth(req);
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
     const parts = await db
       .select()
       .from(partsTable)
-      .where(isNull(partsTable.deletedAt));
+      .where(and(eq(partsTable.userId, userId), isNull(partsTable.deletedAt)));
 
     const lowStock = parts
       .filter((p) => p.quantity <= p.lowStockThreshold)
@@ -70,10 +77,13 @@ router.get("/low-stock", async (req, res) => {
 // GET /reports/category-wise
 router.get("/category-wise", async (req, res) => {
   try {
+    const { userId } = getAuth(req);
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
     const parts = await db
       .select()
       .from(partsTable)
-      .where(isNull(partsTable.deletedAt));
+      .where(and(eq(partsTable.userId, userId), isNull(partsTable.deletedAt)));
 
     const categoryMap = new Map<string, { totalParts: number; totalValue: number }>();
 
@@ -98,12 +108,20 @@ router.get("/category-wise", async (req, res) => {
 // GET /reports/monthly-expense
 router.get("/monthly-expense", async (req, res) => {
   try {
+    const { userId } = getAuth(req);
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
     const year = parseInt(String(req.query.year ?? new Date().getFullYear()));
 
     const records = await db
       .select()
       .from(expenseRecordsTable)
-      .where(sql`${expenseRecordsTable.year} = ${year}`)
+      .where(
+        and(
+          eq(expenseRecordsTable.userId, userId),
+          sql`${expenseRecordsTable.year} = ${year}`,
+        ),
+      )
       .orderBy(asc(expenseRecordsTable.month));
 
     // Group by month
@@ -170,12 +188,20 @@ router.get("/monthly-expense", async (req, res) => {
 // GET /reports/yearly-summary
 router.get("/yearly-summary", async (req, res) => {
   try {
+    const { userId } = getAuth(req);
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
     const year = parseInt(String(req.query.year ?? new Date().getFullYear()));
 
     const records = await db
       .select()
       .from(expenseRecordsTable)
-      .where(sql`${expenseRecordsTable.year} = ${year}`);
+      .where(
+        and(
+          eq(expenseRecordsTable.userId, userId),
+          sql`${expenseRecordsTable.year} = ${year}`,
+        ),
+      );
 
     let totalAnnualExpense = 0;
     const monthTotals = new Map<number, number>();

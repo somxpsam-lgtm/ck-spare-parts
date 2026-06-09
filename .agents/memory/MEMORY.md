@@ -1,1 +1,1 @@
-- [CK Group stack decisions](ck-group-stack.md) — userId isolation via Clerk+PostgreSQL (not Firebase); logo via localStorage per userId; refetchInterval via useQuery spread pattern
+- [Clerk Expo Core v3 API](clerk-expo-v3-api.md) — @clerk/expo v3 uses signIn.password/finalize + useSSO, NOT v2 signIn.create/setActive; enable Google in Auth pane
