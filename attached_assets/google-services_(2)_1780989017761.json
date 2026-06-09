@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "797644637062",
+    "firebase_url": "https://ck-group-2bac8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "ck-group-2bac8",
+    "storage_bucket": "ck-group-2bac8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797644637062:android:6d4a16d5e93b133c9fe207",
+        "android_client_info": {
+          "package_name": "com.ckgroup.appck"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAybTU8wo6q297A5bK5e7oPjBokCYUiL4k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
