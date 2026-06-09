@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/mobile/"
+title = "CK Group Mobile"
+version = "1.0.0"
+id = "artifacts/ck-mobile"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/mobile/" ]
+localPort = 21386
+
+[services.development]
+run = "pnpm --filter @workspace/ck-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ck-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/ck-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "21386"
+BASE_PATH = "/mobile/"
