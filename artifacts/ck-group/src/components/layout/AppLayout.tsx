@@ -106,7 +106,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Bottom Nav */}
         <nav className="md:hidden flex h-16 shrink-0 border-t border-border bg-card overflow-x-auto">
-          {NAV_ITEMS.slice(0, 5).map((item) => {
+          {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
             return (
