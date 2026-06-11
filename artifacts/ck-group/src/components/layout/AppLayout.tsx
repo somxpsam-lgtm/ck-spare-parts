@@ -5,13 +5,13 @@ import { Package, LayoutDashboard, FileBarChart, Settings, LogOut, Tags, ArrowRi
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/parts", label: "Spare Parts", icon: Package },
-  { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/stock-movements", label: "Material/Parts Used", icon: ArrowRightLeft },
-  { href: "/expenses", label: "Expenses", icon: CreditCard },
-  { href: "/reports", label: "Reports", icon: FileBarChart },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
+  { href: "/parts", label: "Spare Parts", short: "Parts", icon: Package },
+  { href: "/categories", label: "Categories", short: "Category", icon: Tags },
+  { href: "/stock-movements", label: "Material/Parts Used", short: "Material", icon: ArrowRightLeft },
+  { href: "/expenses", label: "Expenses", short: "Expense", icon: CreditCard },
+  { href: "/reports", label: "Reports", short: "Reports", icon: FileBarChart },
+  { href: "/settings", label: "Settings", short: "Settings", icon: Settings },
 ];
 
 function useCompanySettings(userId: string | null | undefined) {
@@ -105,17 +105,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden flex h-16 shrink-0 border-t border-border bg-card overflow-x-auto">
+        <nav className="md:hidden grid grid-cols-7 h-16 shrink-0 border-t border-border bg-card">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.href;
+            const isActive = location === item.href || location.startsWith(item.href + "/");
             return (
               <Link key={item.href} href={item.href} className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 min-w-[70px] text-[10px] font-medium transition-colors",
+                "flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[9px] font-medium transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}>
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="w-full truncate text-center leading-tight">{item.short}</span>
               </Link>
             );
           })}
