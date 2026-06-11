@@ -1,1 +1,2 @@
-- [Clerk Expo Core v3 API](clerk-expo-v3-api.md) — @clerk/expo v3 uses signIn.password/finalize + useSSO, NOT v2 signIn.create/setActive; enable Google in Auth pane
+- [Mobile delivery strategy](mobile-delivery-strategy.md) — CK Group mobile = WebIntoApp APK of the published website; Expo artifact removed, do NOT re-add Expo.
+- [Clerk Expo v3 API](clerk-expo-v3-api.md) — (historical) Clerk Core v3 API notes from the now-removed Expo app; only relevant if Expo is ever re-added.
