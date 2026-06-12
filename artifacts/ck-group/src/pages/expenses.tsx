@@ -48,6 +48,68 @@ type Expense = {
   createdAt: string;
 };
 
+const formatCurrency = (val: number) => `₹${val.toLocaleString("en-IN")}`;
+
+// Defined at module scope (NOT inside ExpensesPage) so it keeps a stable
+// component identity. If this lived inside the page component, every parent
+// re-render (e.g. react-query refetch when the mobile keyboard toggles focus)
+// would unmount/remount these fields and the input would lose focus mid-typing.
+function ExpenseFormFields({
+  control,
+  categories,
+  watchFn,
+}: {
+  control: any;
+  categories: Array<{ id: number; name: string }> | undefined;
+  watchFn: () => { quantity: number; unitPrice: number };
+}) {
+  const { quantity, unitPrice } = watchFn();
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField control={control} name="date" render={({ field }) => (
+          <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="category" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Category</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger></FormControl>
+              <SelectContent>
+                {categories?.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField control={control} name="partName" render={({ field }) => (
+          <FormItem><FormLabel>Part / Item Name</FormLabel><FormControl><Input placeholder="e.g. Engine Filter Array" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="supplierName" render={({ field }) => (
+          <FormItem><FormLabel>Supplier (Optional)</FormLabel><FormControl><Input placeholder="e.g. Acme Industrial" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField control={control} name="quantity" render={({ field }) => (
+          <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" inputMode="numeric" min="1" {...field} onFocus={(e) => e.currentTarget.select()} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="unitPrice" render={({ field }) => (
+          <FormItem><FormLabel>Unit Price (₹)</FormLabel><FormControl><Input type="number" inputMode="decimal" step="0.01" min="0" {...field} onFocus={(e) => e.currentTarget.select()} /></FormControl><FormMessage /></FormItem>
+        )} />
+      </div>
+      <FormField control={control} name="notes" render={({ field }) => (
+        <FormItem><FormLabel>Notes (Optional)</FormLabel><FormControl><Textarea placeholder="Invoice number, PO reference, etc." {...field} /></FormControl><FormMessage /></FormItem>
+      )} />
+      <div className="bg-muted p-4 rounded-md flex justify-between items-center border border-border">
+        <span className="font-medium text-sm text-muted-foreground">Calculated Total</span>
+        <span className="font-bold text-lg text-primary">{formatCurrency((quantity || 0) * (unitPrice || 0))}</span>
+      </div>
+    </>
+  );
+}
+
 export default function ExpensesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<Expense | null>(null);
@@ -157,60 +219,11 @@ export default function ExpensesPage() {
     }
   };
 
-  const formatCurrency = (val: number) => `₹${val.toLocaleString("en-IN")}`;
   const months = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(); d.setMonth(i);
     return { value: String(i + 1), label: format(d, "MMMM") };
   });
   const years = Array.from({ length: 5 }, (_, i) => String(currentYear - i));
-
-  const ExpenseFormFields = ({ control, watchFn }: { control: any; watchFn: () => { quantity: number; unitPrice: number } }) => {
-    const { quantity, unitPrice } = watchFn();
-    return (
-      <>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={control} name="date" render={({ field }) => (
-            <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={control} name="category" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {categories?.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={control} name="partName" render={({ field }) => (
-            <FormItem><FormLabel>Part / Item Name</FormLabel><FormControl><Input placeholder="e.g. Engine Filter Array" {...field} /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={control} name="supplierName" render={({ field }) => (
-            <FormItem><FormLabel>Supplier (Optional)</FormLabel><FormControl><Input placeholder="e.g. Acme Industrial" {...field} /></FormControl><FormMessage /></FormItem>
-          )} />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={control} name="quantity" render={({ field }) => (
-            <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" min="1" {...field} /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={control} name="unitPrice" render={({ field }) => (
-            <FormItem><FormLabel>Unit Price (₹)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl><FormMessage /></FormItem>
-          )} />
-        </div>
-        <FormField control={control} name="notes" render={({ field }) => (
-          <FormItem><FormLabel>Notes (Optional)</FormLabel><FormControl><Textarea placeholder="Invoice number, PO reference, etc." {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <div className="bg-muted p-4 rounded-md flex justify-between items-center border border-border">
-          <span className="font-medium text-sm text-muted-foreground">Calculated Total</span>
-          <span className="font-bold text-lg text-primary">{formatCurrency((quantity || 0) * (unitPrice || 0))}</span>
-        </div>
-      </>
-    );
-  };
 
   return (
     <AppLayout>
@@ -234,7 +247,7 @@ export default function ExpensesPage() {
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                  <ExpenseFormFields control={form.control} watchFn={() => ({ quantity: form.watch("quantity"), unitPrice: form.watch("unitPrice") })} />
+                  <ExpenseFormFields control={form.control} categories={categories} watchFn={() => ({ quantity: form.watch("quantity"), unitPrice: form.watch("unitPrice") })} />
                   <div className="flex justify-end pt-4 gap-2">
                     <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                     <Button type="submit" disabled={createMutation.isPending} className="bg-primary hover:bg-primary/90">
@@ -325,7 +338,7 @@ export default function ExpensesPage() {
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4 pt-2">
-              <ExpenseFormFields control={editForm.control} watchFn={() => ({ quantity: editForm.watch("quantity"), unitPrice: editForm.watch("unitPrice") })} />
+              <ExpenseFormFields control={editForm.control} categories={categories} watchFn={() => ({ quantity: editForm.watch("quantity"), unitPrice: editForm.watch("unitPrice") })} />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setEditItem(null)}>Cancel</Button>
                 <Button type="submit" disabled={isUpdating} className="bg-primary hover:bg-primary/90">
