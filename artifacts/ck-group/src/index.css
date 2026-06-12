@@ -183,6 +183,11 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    /* Disable browser pull-to-refresh / overscroll reload on mobile */
+    overscroll-behavior-y: none;
+  }
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
