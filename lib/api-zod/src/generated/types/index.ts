@@ -12,6 +12,8 @@ export * from './category';
 export * from './categoryExpense';
 export * from './categoryInput';
 export * from './categoryReport';
+export * from './companySettings';
+export * from './companySettingsInput';
 export * from './dashboardSummary';
 export * from './expenseInput';
 export * from './expenseRecord';

@@ -8,53 +8,84 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { HardDriveDownload, Save, Settings2, Upload, X, Building2, Loader2, Receipt, Phone, Mail } from "lucide-react";
+import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
-
-function useSettings(userId: string | null | undefined) {
-  const key = userId ? `ck_settings_${userId}` : null;
-  const load = () => {
-    if (!key) return { companyName: "CK Group", companyAddress: "Industrial Area, Phase 1", logoUrl: "", gstNumber: "", contactPhone: "", contactEmail: "" };
-    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
-  };
-  const [settings, setSettings] = useState(load);
-  const save = (update: Record<string, string>) => {
-    if (!key) return;
-    const next = { ...settings, ...update };
-    setSettings(next);
-    localStorage.setItem(key, JSON.stringify(next));
-    window.dispatchEvent(new Event("ck-settings-updated"));
-  };
-  return { settings, save };
-}
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { userId } = useAuth();
-  const { settings, save } = useSettings(userId);
-  const [companyName, setCompanyName] = useState(settings.companyName || "CK Group");
-  const [companyAddress, setCompanyAddress] = useState(settings.companyAddress || "Industrial Area, Phase 1");
-  const [logoUrl, setLogoUrl] = useState(settings.logoUrl || "");
+  const queryClient = useQueryClient();
+  const { data: settings, isLoading } = useGetSettings();
+  const updateSettings = useUpdateSettings();
+
+  const [companyName, setCompanyName] = useState("CK Group");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const didMigrate = useRef(false);
 
   // New fields
-  const [gstNumber, setGstNumber] = useState(settings.gstNumber || "");
-  const [contactPhone, setContactPhone] = useState(settings.contactPhone || "");
-  const [contactEmail, setContactEmail] = useState(settings.contactEmail || "");
+  const [gstNumber, setGstNumber] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
 
   useEffect(() => {
+    if (!settings) return;
     setCompanyName(settings.companyName || "CK Group");
-    setCompanyAddress(settings.companyAddress || "Industrial Area, Phase 1");
+    setCompanyAddress(settings.companyAddress || "");
     setLogoUrl(settings.logoUrl || "");
     setGstNumber(settings.gstNumber || "");
     setContactPhone(settings.contactPhone || "");
     setContactEmail(settings.contactEmail || "");
-  }, [userId]);
+  }, [settings]);
 
-  const handleSave = () => {
-    save({ companyName, companyAddress, logoUrl, gstNumber, contactPhone, contactEmail });
-    toast({ title: "Settings saved successfully" });
+  // One-time migration: lift legacy per-device localStorage settings into the DB.
+  // Only fills DB fields that are still empty, so newer DB values are never overwritten.
+  useEffect(() => {
+    if (!settings || !userId || didMigrate.current) return;
+    didMigrate.current = true;
+    const flagKey = `ck_settings_migrated_${userId}`;
+    if (localStorage.getItem(flagKey)) return;
+    try {
+      const raw = localStorage.getItem(`ck_settings_${userId}`);
+      if (raw) {
+        const old = JSON.parse(raw) as Record<string, string>;
+        const update: Record<string, string> = {};
+        if (old.companyName && (!settings.companyName || settings.companyName === "CK Group")) update.companyName = old.companyName;
+        if (old.companyAddress && !settings.companyAddress) update.companyAddress = old.companyAddress;
+        if (old.logoUrl && !settings.logoUrl) update.logoUrl = old.logoUrl;
+        if (old.gstNumber && !settings.gstNumber) update.gstNumber = old.gstNumber;
+        if (old.contactPhone && !settings.contactPhone) update.contactPhone = old.contactPhone;
+        if (old.contactEmail && !settings.contactEmail) update.contactEmail = old.contactEmail;
+        if (Object.keys(update).length > 0) {
+          updateSettings.mutate({ data: update }, {
+            onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() }),
+          });
+        }
+      }
+      localStorage.setItem(flagKey, "1");
+    } catch {
+      // ignore malformed legacy data
+    }
+  }, [settings, userId]);
+
+  const persist = (update: Record<string, string>, successMsg: string) => {
+    if (!settings) return;
+    updateSettings.mutate(
+      { data: { companyName, companyAddress, logoUrl, gstNumber, contactPhone, contactEmail, ...update } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() });
+          toast({ title: successMsg });
+        },
+        onError: () => toast({ title: "Failed to save settings", variant: "destructive" }),
+      }
+    );
   };
+
+  const handleSave = () => persist({}, "Settings saved successfully");
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,8 +98,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setLogoUrl(data.url);
-      save({ companyName, companyAddress, logoUrl: data.url, gstNumber, contactPhone, contactEmail });
-      toast({ title: "Logo uploaded successfully" });
+      persist({ logoUrl: data.url }, "Logo uploaded successfully");
     } catch {
       toast({ title: "Logo upload failed", variant: "destructive" });
     } finally {
@@ -81,8 +111,7 @@ export default function SettingsPage() {
     const filename = logoUrl.split("/").pop();
     if (filename) fetch(`/api/uploads/${filename}`, { method: "DELETE" }).catch(() => {});
     setLogoUrl("");
-    save({ companyName, companyAddress, logoUrl: "", gstNumber, contactPhone, contactEmail });
-    toast({ title: "Logo removed" });
+    persist({ logoUrl: "" }, "Logo removed");
   };
 
   const handleThemeToggle = () => {
@@ -126,7 +155,7 @@ export default function SettingsPage() {
                     type="button"
                     variant="outline"
                     onClick={() => logoInputRef.current?.click()}
-                    disabled={isUploadingLogo}
+                    disabled={isUploadingLogo || isLoading}
                   >
                     {isUploadingLogo ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading...</>
@@ -135,7 +164,7 @@ export default function SettingsPage() {
                     )}
                   </Button>
                   {logoUrl && (
-                    <Button type="button" variant="outline" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
+                    <Button type="button" variant="outline" onClick={handleRemoveLogo} disabled={isUploadingLogo || isLoading || updateSettings.isPending} className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
                       <X className="mr-2 h-4 w-4" />Remove Logo
                     </Button>
                   )}
@@ -174,7 +203,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handleSave} disabled={updateSettings.isPending || isLoading} className="bg-primary hover:bg-primary/90">
                 <Save className="mr-2 h-4 w-4" />Save Changes
               </Button>
             </div>
@@ -234,7 +263,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handleSave} disabled={updateSettings.isPending || isLoading} className="bg-primary hover:bg-primary/90">
                 <Save className="mr-2 h-4 w-4" />Save Changes
               </Button>
             </div>

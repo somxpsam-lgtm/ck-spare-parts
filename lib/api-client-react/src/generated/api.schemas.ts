@@ -246,6 +246,25 @@ export interface YearlySummary {
   totalPurchasedParts: number;
 }
 
+export interface CompanySettings {
+  companyName: string;
+  companyAddress: string;
+  logoUrl: string;
+  gstNumber: string;
+  contactPhone: string;
+  contactEmail: string;
+  updatedAt: string;
+}
+
+export interface CompanySettingsInput {
+  companyName?: string;
+  companyAddress?: string;
+  logoUrl?: string;
+  gstNumber?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+}
+
 export type ListPartsParams = {
 search?: string;
 category?: string;

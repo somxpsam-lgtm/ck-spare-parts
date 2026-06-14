@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useLocation } from "wouter";
-import { useClerk, useAuth } from "@clerk/react";
+import { useClerk } from "@clerk/react";
 import { Package, LayoutDashboard, FileBarChart, Settings, LogOut, Tags, ArrowRightLeft, CreditCard } from "lucide-react";
+import { useGetSettings } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -14,32 +15,18 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Settings", short: "Settings", icon: Settings },
 ];
 
-function useCompanySettings(userId: string | null | undefined) {
-  const key = userId ? `ck_settings_${userId}` : null;
-  const load = () => {
-    if (!key) return { companyName: "CK GROUP", logoUrl: "" };
-    try {
-      const s = JSON.parse(localStorage.getItem(key) || "{}");
-      return { companyName: s.companyName || "CK GROUP", logoUrl: s.logoUrl || "" };
-    } catch { return { companyName: "CK GROUP", logoUrl: "" }; }
+function useCompanySettings() {
+  const { data } = useGetSettings();
+  return {
+    companyName: data?.companyName || "CK GROUP",
+    logoUrl: data?.logoUrl || "",
   };
-  const [settings, setSettings] = useState(load);
-
-  useEffect(() => {
-    setSettings(load());
-    const onUpdate = () => setSettings(load());
-    window.addEventListener("ck-settings-updated", onUpdate);
-    return () => window.removeEventListener("ck-settings-updated", onUpdate);
-  }, [userId]);
-
-  return settings;
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { signOut } = useClerk();
-  const { userId } = useAuth();
-  const { companyName, logoUrl } = useCompanySettings(userId);
+  const { companyName, logoUrl } = useCompanySettings();
 
   const Logo = () => (
     <div className="flex items-center gap-3">

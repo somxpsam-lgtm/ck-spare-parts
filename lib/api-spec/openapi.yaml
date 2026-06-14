@@ -21,6 +21,8 @@ tags:
     description: Reporting and analytics
   - name: dashboard
     description: Dashboard summary and stats
+  - name: settings
+    description: Company settings
 
 paths:
   /healthz:
@@ -440,6 +442,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/YearlySummary"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get company settings
+      responses:
+        "200":
+          description: Company settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanySettings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update company settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanySettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanySettings"
 
 components:
   schemas:
@@ -913,3 +945,45 @@ components:
           type: string
         totalPurchasedParts:
           type: integer
+
+    CompanySettings:
+      type: object
+      required:
+        - companyName
+        - companyAddress
+        - logoUrl
+        - gstNumber
+        - contactPhone
+        - contactEmail
+        - updatedAt
+      properties:
+        companyName:
+          type: string
+        companyAddress:
+          type: string
+        logoUrl:
+          type: string
+        gstNumber:
+          type: string
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+        updatedAt:
+          type: string
+
+    CompanySettingsInput:
+      type: object
+      properties:
+        companyName:
+          type: string
+        companyAddress:
+          type: string
+        logoUrl:
+          type: string
+        gstNumber:
+          type: string
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string

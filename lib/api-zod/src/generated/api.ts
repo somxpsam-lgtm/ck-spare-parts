@@ -432,3 +432,40 @@ export const GetYearlySummaryResponse = zod.object({
 })
 
 
+/**
+ * @summary Get company settings
+ */
+export const GetSettingsResponse = zod.object({
+  "companyName": zod.string(),
+  "companyAddress": zod.string(),
+  "logoUrl": zod.string(),
+  "gstNumber": zod.string(),
+  "contactPhone": zod.string(),
+  "contactEmail": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update company settings
+ */
+export const UpdateSettingsBody = zod.object({
+  "companyName": zod.string().optional(),
+  "companyAddress": zod.string().optional(),
+  "logoUrl": zod.string().optional(),
+  "gstNumber": zod.string().optional(),
+  "contactPhone": zod.string().optional(),
+  "contactEmail": zod.string().optional()
+})
+
+export const UpdateSettingsResponse = zod.object({
+  "companyName": zod.string(),
+  "companyAddress": zod.string(),
+  "logoUrl": zod.string(),
+  "gstNumber": zod.string(),
+  "contactPhone": zod.string(),
+  "contactEmail": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
