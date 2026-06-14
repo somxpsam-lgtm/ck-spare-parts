@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRightLeft, TrendingUp, TrendingDown, RefreshCcw, Loader2, Pencil, Trash2, Package, Search, X } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatQuantity } from "@/lib/quantity";
 
 const movementSchema = z.object({
   partId: z.coerce.number().min(1, "Select a part"),
@@ -49,6 +50,7 @@ type Movement = {
   id: number;
   partId: number;
   partName: string | null;
+  partUnit?: string | null;
   type: string;
   quantity: number;
   notes: string | null;
@@ -57,7 +59,7 @@ type Movement = {
   createdAt: string;
 };
 
-type Part = { id: number; name: string; modelNumber: string; quantity: number; category: string };
+type Part = { id: number; name: string; modelNumber: string; quantity: number; unit: string; category: string };
 
 function PartAutocomplete({
   parts,
@@ -117,7 +119,7 @@ function PartAutocomplete({
           <span className="font-medium text-foreground truncate block">{selectedName || selectedPart?.name}</span>
           {selectedPart && (
             <span className="text-xs text-muted-foreground">
-              {selectedPart.modelNumber} · Stock: <span className={cn("font-semibold", selectedPart.quantity === 0 ? "text-destructive" : selectedPart.quantity <= 5 ? "text-amber-500" : "text-emerald-500")}>{selectedPart.quantity}</span>
+              {selectedPart.modelNumber} · Stock: <span className={cn("font-semibold", selectedPart.quantity === 0 ? "text-destructive" : selectedPart.quantity <= 5 ? "text-amber-500" : "text-emerald-500")}>{formatQuantity(selectedPart.quantity, selectedPart.unit)}</span>
             </span>
           )}
         </div>
@@ -169,7 +171,7 @@ function PartAutocomplete({
                     ? "bg-amber-500/10 text-amber-500"
                     : "bg-emerald-500/10 text-emerald-500"
                 )}>
-                  Qty: {p.quantity}
+                  Qty: {formatQuantity(p.quantity, p.unit)}
                 </span>
               </div>
             </button>
@@ -324,6 +326,7 @@ export default function StockMovementsPage() {
     name: p.name,
     modelNumber: p.modelNumber,
     quantity: p.quantity,
+    unit: p.unit,
     category: p.category,
   }));
 
@@ -556,7 +559,7 @@ export default function StockMovementsPage() {
                     </TableCell>
                     <TableCell className="text-right font-bold tabular-nums">
                       <span className={m.type === "out" ? "text-blue-500" : m.type === "in" ? "text-emerald-500" : "text-amber-500"}>
-                        {m.type === "out" ? "−" : "+"}{m.quantity}
+                        {m.type === "out" ? "−" : "+"}{m.quantity}{m.partUnit ? ` ${m.partUnit}` : ""}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm max-w-[200px]">

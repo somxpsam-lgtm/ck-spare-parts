@@ -20,6 +20,7 @@ router.get("/", async (req, res) => {
         id: stockMovementsTable.id,
         partId: stockMovementsTable.partId,
         partName: partsTable.name,
+        partUnit: partsTable.unit,
         type: stockMovementsTable.type,
         quantity: stockMovementsTable.quantity,
         notes: stockMovementsTable.notes,
@@ -66,11 +67,11 @@ router.post("/", async (req, res) => {
     await db.insert(activityLogTable).values({
       userId,
       type: actType,
-      description: `Stock ${body.type === "in" ? "added to" : body.type === "out" ? "removed from" : "adjusted for"} "${part.name}": ${body.quantity} units`,
+      description: `Stock ${body.type === "in" ? "added to" : body.type === "out" ? "removed from" : "adjusted for"} "${part.name}": ${body.quantity} ${part.unit}`,
       partName: part.name,
     });
 
-    res.status(201).json({ ...movement, partName: part.name, createdAt: movement.createdAt.toISOString() });
+    res.status(201).json({ ...movement, partName: part.name, partUnit: part.unit, createdAt: movement.createdAt.toISOString() });
   } catch (err) { req.log.error(err); res.status(500).json({ error: "Internal server error" }); }
 });
 
@@ -108,7 +109,7 @@ router.patch("/:id", async (req, res) => {
     if (body.date !== undefined) updateData.date = body.date;
 
     const [updated] = await db.update(stockMovementsTable).set(updateData).where(eq(stockMovementsTable.id, id)).returning();
-    res.json({ ...updated, partName: part?.name ?? null, createdAt: updated.createdAt.toISOString() });
+    res.json({ ...updated, partName: part?.name ?? null, partUnit: part?.unit ?? null, createdAt: updated.createdAt.toISOString() });
   } catch (err) { req.log.error(err); res.status(500).json({ error: "Internal server error" }); }
 });
 

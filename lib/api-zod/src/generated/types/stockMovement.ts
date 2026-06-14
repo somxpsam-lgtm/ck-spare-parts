@@ -11,6 +11,7 @@ export interface StockMovement {
   id: number;
   partId: number;
   partName?: string | null;
+  partUnit?: string | null;
   type: StockMovementType;
   quantity: number;
   notes?: string | null;

@@ -34,7 +34,9 @@ _Describe the high-level user-facing capabilities of this app once they exist._
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Respond to the user in Hindi/Hinglish — the user is non-technical.
+- Mobile app = a WebIntoApp APK wrapper of the **published** website. Never add Expo / React Native.
+- Dark theme: background `#080e1f`, primary `#3b9af5`.
 
 ## Gotchas
 

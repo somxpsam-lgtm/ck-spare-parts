@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatQuantity } from "@/lib/quantity";
 
 export default function PartsPage() {
   const [search, setSearch] = useState("");
@@ -205,7 +206,7 @@ export default function PartsPage() {
                           {part.condition === "new" ? "New" : "Used"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">{part.quantity}</TableCell>
+                      <TableCell className="text-right font-medium">{formatQuantity(part.quantity, part.unit)}</TableCell>
                       <TableCell className="text-right text-muted-foreground">{formatCurrency(part.unitPrice)}</TableCell>
                       <TableCell className="text-right font-medium">{formatCurrency(part.totalValue)}</TableCell>
                       <TableCell className="text-center">

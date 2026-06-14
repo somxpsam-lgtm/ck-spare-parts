@@ -460,6 +460,7 @@ components:
         - category
         - condition
         - quantity
+        - unit
         - unitPrice
         - totalValue
         - lowStockThreshold
@@ -482,6 +483,8 @@ components:
           enum: [new, used]
         quantity:
           type: integer
+        unit:
+          type: string
         unitPrice:
           type: number
         totalValue:
@@ -528,6 +531,8 @@ components:
           type: number
         lowStockThreshold:
           type: integer
+        unit:
+          type: string
         imageUrls:
           type: array
           items:
@@ -553,6 +558,8 @@ components:
           type: number
         lowStockThreshold:
           type: integer
+        unit:
+          type: string
         imageUrls:
           type: array
           items:
@@ -594,6 +601,9 @@ components:
         partId:
           type: integer
         partName:
+          type: string
+          nullable: true
+        partUnit:
           type: string
           nullable: true
         type:
@@ -799,6 +809,7 @@ components:
         - modelNumber
         - category
         - quantity
+        - unit
         - lowStockThreshold
         - reorderNeeded
       properties:
@@ -812,6 +823,8 @@ components:
           type: string
         quantity:
           type: integer
+        unit:
+          type: string
         lowStockThreshold:
           type: integer
         reorderNeeded:

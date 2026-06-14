@@ -16,5 +16,6 @@ export interface PartUpdate {
   quantity?: number;
   unitPrice?: number;
   lowStockThreshold?: number;
+  unit?: string;
   imageUrls?: string[];
 }

@@ -15,6 +15,7 @@ export interface Part {
   category: string;
   condition: PartCondition;
   quantity: number;
+  unit: string;
   unitPrice: number;
   totalValue: number;
   lowStockThreshold: number;

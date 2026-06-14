@@ -12,6 +12,7 @@ export interface LowStockItem {
   modelNumber: string;
   category: string;
   quantity: number;
+  unit: string;
   lowStockThreshold: number;
   reorderNeeded: number;
   location?: string | null;

@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { Link } from "wouter";
 import { ArrowRight, FileBarChart, PackageSearch, AlertTriangle, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { formatQuantity } from "@/lib/quantity";
 
 export default function ReportsPage() {
   const { data: inventory, isLoading: isLoadingInv } = useGetInventoryReport();
@@ -56,6 +57,14 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const escapeHtml = (v: unknown) =>
+    String(v ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   const handleExportExcel = () => {
     const date = new Date().toISOString().split("T")[0];
 
@@ -64,7 +73,7 @@ export default function ReportsPage() {
       ["Metric", "Value"],
       [
         ["Total Parts", inventory?.totalParts ?? 0],
-        ["Total Quantity (Units)", inventory?.totalQuantity ?? 0],
+        ["Total Quantity", inventory?.totalQuantity ?? 0],
         ["Total Stock Value (₹)", inventory?.totalStockValue ?? 0],
       ]
     );
@@ -83,8 +92,8 @@ export default function ReportsPage() {
     if (lowStock?.length) {
       setTimeout(() => {
         exportCSV(`low-stock-report-${date}.csv`,
-          ["Part Name", "Model Number", "Category", "Location", "Current Stock", "Threshold", "Deficit"],
-          lowStock.map(i => [i.name, i.modelNumber, i.category, i.location ?? "", i.quantity, i.lowStockThreshold, i.reorderNeeded])
+          ["Part Name", "Model Number", "Category", "Location", "Unit", "Current Stock", "Threshold", "Deficit"],
+          lowStock.map(i => [i.name, i.modelNumber, i.category, i.location ?? "", i.unit, i.quantity, i.lowStockThreshold, i.reorderNeeded])
         );
       }, 600);
     }
@@ -93,10 +102,10 @@ export default function ReportsPage() {
   const handleExportPDF = () => {
     const date = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
     const catRows = categories?.map(c =>
-      `<tr><td>${c.category}</td><td style="text-align:right">${c.totalParts}</td><td style="text-align:right">₹${c.totalValue.toLocaleString("en-IN")}</td></tr>`
+      `<tr><td>${escapeHtml(c.category)}</td><td style="text-align:right">${c.totalParts}</td><td style="text-align:right">₹${c.totalValue.toLocaleString("en-IN")}</td></tr>`
     ).join("") ?? "<tr><td colspan='3'>No data</td></tr>";
     const lowRows = lowStock?.map(i =>
-      `<tr><td>${i.name}</td><td>${i.category}</td><td style="text-align:right;color:#ef4444">${i.quantity}</td><td style="text-align:right">${i.lowStockThreshold}</td><td style="text-align:right;color:#ef4444">-${i.reorderNeeded}</td></tr>`
+      `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.category)}</td><td style="text-align:right;color:#ef4444">${i.quantity} ${escapeHtml(i.unit)}</td><td style="text-align:right">${i.lowStockThreshold} ${escapeHtml(i.unit)}</td><td style="text-align:right;color:#ef4444">-${i.reorderNeeded} ${escapeHtml(i.unit)}</td></tr>`
     ).join("") ?? "<tr><td colspan='5'>All items sufficiently stocked</td></tr>";
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Inventory Report</title>
@@ -118,7 +127,7 @@ export default function ReportsPage() {
     <p class="meta">Generated: ${date}</p>
     <div class="stats">
       <div class="stat"><div class="stat-label">Total Parts</div><div class="stat-value">${inventory?.totalParts ?? 0}</div></div>
-      <div class="stat"><div class="stat-label">Total Units</div><div class="stat-value">${inventory?.totalQuantity ?? 0}</div></div>
+      <div class="stat"><div class="stat-label">Total Quantity</div><div class="stat-value">${inventory?.totalQuantity ?? 0}</div></div>
       <div class="stat"><div class="stat-label">Stock Value</div><div class="stat-value">₹${(inventory?.totalStockValue ?? 0).toLocaleString("en-IN")}</div></div>
     </div>
     <h2>Category Breakdown</h2>
@@ -198,7 +207,7 @@ export default function ReportsPage() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Quantity (Units)</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Quantity</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isLoadingInv ? <Skeleton className="h-8 w-20" /> : <div className="text-3xl font-bold">{inventory?.totalQuantity}</div>}
@@ -279,7 +288,7 @@ export default function ReportsPage() {
                 <CardContent className="h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={lowStock.map(i => ({ name: i.name.length > 16 ? i.name.substring(0, 14) + "…" : i.name, deficit: i.reorderNeeded }))}
+                      data={lowStock.map(i => ({ name: i.name.length > 16 ? i.name.substring(0, 14) + "…" : i.name, deficit: i.reorderNeeded, unit: i.unit }))}
                       layout="vertical"
                       margin={{ top: 4, right: 24, left: 0, bottom: 4 }}
                     >
@@ -299,7 +308,7 @@ export default function ReportsPage() {
                         width={110}
                       />
                       <Tooltip
-                        formatter={(v: number) => [`${v} units`, "Deficit"]}
+                        formatter={(v: number, _n, item) => [`${v} ${(item?.payload?.unit as string) ?? ""}`.trim(), "Deficit"]}
                         contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }}
                       />
                       <Bar dataKey="deficit" name="Deficit" fill="hsl(var(--destructive))" opacity={0.8} radius={[0, 4, 4, 0]} />
@@ -346,13 +355,13 @@ export default function ReportsPage() {
                             <TableCell className="text-muted-foreground">{item.location || "—"}</TableCell>
                             <TableCell className="text-right font-bold">
                               {item.quantity === 0 ? (
-                                <span className="text-destructive">0</span>
+                                <span className="text-destructive">{formatQuantity(0, item.unit)}</span>
                               ) : (
-                                <span className="text-amber-500">{item.quantity}</span>
+                                <span className="text-amber-500">{formatQuantity(item.quantity, item.unit)}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-muted-foreground">{item.lowStockThreshold}</TableCell>
-                            <TableCell className="text-right text-destructive font-bold">-{item.reorderNeeded}</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{formatQuantity(item.lowStockThreshold, item.unit)}</TableCell>
+                            <TableCell className="text-right text-destructive font-bold">-{formatQuantity(item.reorderNeeded, item.unit)}</TableCell>
                           </TableRow>
                         ))
                       )}

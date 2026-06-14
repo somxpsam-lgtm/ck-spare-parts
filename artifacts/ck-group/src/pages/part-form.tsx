@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { ImageUploader } from "@/components/ImageUploader";
+import { COMMON_UNITS } from "@/lib/quantity";
 
 const partSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,6 +32,7 @@ const partSchema = z.object({
   category: z.string().min(1, "Category is required"),
   condition: z.enum(["new", "used"] as const),
   quantity: z.coerce.number().min(0, "Must be positive"),
+  unit: z.string().min(1, "Unit is required"),
   unitPrice: z.coerce.number().min(0, "Must be positive"),
   lowStockThreshold: z.coerce.number().min(0, "Must be positive"),
   imageUrls: z.array(z.string()).default([]),
@@ -62,6 +64,7 @@ export default function PartFormPage() {
       category: "",
       condition: "new",
       quantity: 0,
+      unit: "Pcs",
       unitPrice: 0,
       lowStockThreshold: 5,
       imageUrls: [],
@@ -77,6 +80,7 @@ export default function PartFormPage() {
         category: part.category,
         condition: part.condition,
         quantity: part.quantity,
+        unit: part.unit ?? "Pcs",
         unitPrice: part.unitPrice,
         lowStockThreshold: part.lowStockThreshold,
         imageUrls: part.imageUrls ?? [],
@@ -273,7 +277,7 @@ export default function PartFormPage() {
 
                   <div className="md:col-span-2 border-t border-border pt-6 mt-2">
                     <h3 className="text-sm font-medium mb-4 text-foreground">Stock & Pricing</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
                         name="quantity"
@@ -281,8 +285,26 @@ export default function PartFormPage() {
                           <FormItem>
                             <FormLabel>Current Quantity</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} />
+                              <Input type="number" inputMode="decimal" onFocus={(e) => e.target.select()} {...field} />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="unit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Unit</FormLabel>
+                            <FormControl>
+                              <Input list="unit-suggestions" placeholder="e.g. Pcs, Liter, Kg, Box, Meter" {...field} />
+                            </FormControl>
+                            <datalist id="unit-suggestions">
+                              {COMMON_UNITS.map((u) => (
+                                <option key={u} value={u} />
+                              ))}
+                            </datalist>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -294,7 +316,7 @@ export default function PartFormPage() {
                           <FormItem>
                             <FormLabel>Low Stock Alert At</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} />
+                              <Input type="number" inputMode="decimal" onFocus={(e) => e.target.select()} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -307,7 +329,7 @@ export default function PartFormPage() {
                           <FormItem>
                             <FormLabel>Unit Price (₹)</FormLabel>
                             <FormControl>
-                              <Input type="number" step="0.01" {...field} />
+                              <Input type="number" step="0.01" inputMode="decimal" onFocus={(e) => e.target.select()} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

@@ -61,6 +61,7 @@ router.get("/low-stock", async (req, res) => {
         modelNumber: p.modelNumber,
         category: p.category,
         quantity: p.quantity,
+        unit: p.unit,
         lowStockThreshold: p.lowStockThreshold,
         reorderNeeded: Math.max(0, p.lowStockThreshold - p.quantity + 1),
         location: p.location ?? null,

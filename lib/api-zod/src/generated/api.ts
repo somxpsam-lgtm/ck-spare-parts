@@ -35,6 +35,7 @@ export const ListPartsResponseItem = zod.object({
   "category": zod.string(),
   "condition": zod.enum(['new', 'used']),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "unitPrice": zod.number(),
   "totalValue": zod.number(),
   "lowStockThreshold": zod.number(),
@@ -58,6 +59,7 @@ export const CreatePartBody = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "lowStockThreshold": zod.number(),
+  "unit": zod.string().optional(),
   "imageUrls": zod.array(zod.string()).optional()
 })
 
@@ -77,6 +79,7 @@ export const GetPartResponse = zod.object({
   "category": zod.string(),
   "condition": zod.enum(['new', 'used']),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "unitPrice": zod.number(),
   "totalValue": zod.number(),
   "lowStockThreshold": zod.number(),
@@ -103,6 +106,7 @@ export const UpdatePartBody = zod.object({
   "quantity": zod.number().optional(),
   "unitPrice": zod.number().optional(),
   "lowStockThreshold": zod.number().optional(),
+  "unit": zod.string().optional(),
   "imageUrls": zod.array(zod.string()).optional()
 })
 
@@ -114,6 +118,7 @@ export const UpdatePartResponse = zod.object({
   "category": zod.string(),
   "condition": zod.enum(['new', 'used']),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "unitPrice": zod.number(),
   "totalValue": zod.number(),
   "lowStockThreshold": zod.number(),
@@ -139,6 +144,7 @@ export const DeletePartResponse = zod.object({
   "category": zod.string(),
   "condition": zod.enum(['new', 'used']),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "unitPrice": zod.number(),
   "totalValue": zod.number(),
   "lowStockThreshold": zod.number(),
@@ -164,6 +170,7 @@ export const RestorePartResponse = zod.object({
   "category": zod.string(),
   "condition": zod.enum(['new', 'used']),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "unitPrice": zod.number(),
   "totalValue": zod.number(),
   "lowStockThreshold": zod.number(),
@@ -205,6 +212,7 @@ export const ListStockMovementsResponseItem = zod.object({
   "id": zod.number(),
   "partId": zod.number(),
   "partName": zod.string().nullish(),
+  "partUnit": zod.string().nullish(),
   "type": zod.enum(['in', 'out', 'adjustment']),
   "quantity": zod.number(),
   "notes": zod.string().nullish(),
@@ -364,6 +372,7 @@ export const GetLowStockReportResponseItem = zod.object({
   "modelNumber": zod.string(),
   "category": zod.string(),
   "quantity": zod.number(),
+  "unit": zod.string(),
   "lowStockThreshold": zod.number(),
   "reorderNeeded": zod.number(),
   "location": zod.string().nullish()

@@ -22,6 +22,7 @@ export const partsTable = pgTable("parts", {
   category: text("category").notNull(),
   condition: text("condition").notNull().default("new"),
   quantity: integer("quantity").notNull().default(0),
+  unit: text("unit").notNull().default("Pcs"),
   unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull().default("0"),
   lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
   imageUrls: text("image_urls").array().notNull().default([]),

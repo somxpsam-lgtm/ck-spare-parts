@@ -1,3 +1,3 @@
-- [Mobile delivery strategy](mobile-delivery-strategy.md) — CK Group mobile = WebIntoApp APK of the published website; Expo artifact removed, do NOT re-add Expo.
-- [React form focus loss](react-form-focus-loss.md) — keep field components at module scope; inline-in-page components remount on every render (mobile keyboard + refetchOnWindowFocus) and drop input focus.
-- [Clerk Expo v3 API](clerk-expo-v3-api.md) — (historical) Clerk Core v3 API notes from the now-removed Expo app; only relevant if Expo is ever re-added.
+# Memory Index
+
+- [CK Group units & reports](ck-group-units-reports.md) — per-part unit display rules; never unit-label mixed-unit aggregate totals; reports PDF export is an XSS sink.

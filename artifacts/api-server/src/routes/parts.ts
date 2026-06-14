@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
     const { userId } = getAuth(req);
     if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
     const body = CreatePartBody.parse(req.body);
-    const [part] = await db.insert(partsTable).values({ userId, name: body.name, modelNumber: body.modelNumber, location: body.location ?? null, category: body.category, condition: body.condition, quantity: body.quantity, unitPrice: String(body.unitPrice), lowStockThreshold: body.lowStockThreshold, imageUrls: body.imageUrls ?? [] }).returning();
+    const [part] = await db.insert(partsTable).values({ userId, name: body.name, modelNumber: body.modelNumber, location: body.location ?? null, category: body.category, condition: body.condition, quantity: body.quantity, unit: body.unit?.trim() || "Pcs", unitPrice: String(body.unitPrice), lowStockThreshold: body.lowStockThreshold, imageUrls: body.imageUrls ?? [] }).returning();
     await db.insert(activityLogTable).values({ userId, type: "created", description: `Part "${part.name}" was added to inventory`, partName: part.name });
     res.status(201).json({ ...part, unitPrice: parseFloat(part.unitPrice as string), totalValue: parseFloat(part.unitPrice as string) * part.quantity, imageUrls: part.imageUrls ?? [], deletedAt: null, createdAt: part.createdAt.toISOString(), updatedAt: part.updatedAt.toISOString() });
   } catch (err) { req.log.error(err); res.status(500).json({ error: "Internal server error" }); }
@@ -60,6 +60,7 @@ router.patch("/:id", async (req, res) => {
     if (body.category !== undefined) updateData.category = body.category;
     if (body.condition !== undefined) updateData.condition = body.condition;
     if (body.quantity !== undefined) updateData.quantity = body.quantity;
+    if (body.unit !== undefined && body.unit.trim()) updateData.unit = body.unit.trim();
     if (body.unitPrice !== undefined) updateData.unitPrice = String(body.unitPrice);
     if (body.lowStockThreshold !== undefined) updateData.lowStockThreshold = body.lowStockThreshold;
     if (body.imageUrls !== undefined) updateData.imageUrls = body.imageUrls;

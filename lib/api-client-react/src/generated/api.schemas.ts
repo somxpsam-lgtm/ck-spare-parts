@@ -25,6 +25,7 @@ export interface Part {
   category: string;
   condition: PartCondition;
   quantity: number;
+  unit: string;
   unitPrice: number;
   totalValue: number;
   lowStockThreshold: number;
@@ -51,6 +52,7 @@ export interface PartInput {
   quantity: number;
   unitPrice: number;
   lowStockThreshold: number;
+  unit?: string;
   imageUrls?: string[];
 }
 
@@ -71,6 +73,7 @@ export interface PartUpdate {
   quantity?: number;
   unitPrice?: number;
   lowStockThreshold?: number;
+  unit?: string;
   imageUrls?: string[];
 }
 
@@ -97,6 +100,7 @@ export interface StockMovement {
   id: number;
   partId: number;
   partName?: string | null;
+  partUnit?: string | null;
   type: StockMovementType;
   quantity: number;
   notes?: string | null;
@@ -204,6 +208,7 @@ export interface LowStockItem {
   modelNumber: string;
   category: string;
   quantity: number;
+  unit: string;
   lowStockThreshold: number;
   reorderNeeded: number;
   location?: string | null;
