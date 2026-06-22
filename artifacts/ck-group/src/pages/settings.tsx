@@ -11,6 +11,7 @@ import { HardDriveDownload, Save, Settings2, Upload, X, Building2, Loader2, Rece
 import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
+import { downloadBackup } from "@/lib/backup";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -25,6 +26,26 @@ export default function SettingsPage() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const didMigrate = useRef(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+
+  const handleBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      const { parts, movements } = await downloadBackup();
+      toast({
+        title: "Backup downloaded",
+        description: `${parts} parts and ${movements} stock movements saved to a ZIP file.`,
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Backup failed",
+        description: "Could not generate the backup. Please check your connection and try again.",
+      });
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
 
   // New fields
   const [gstNumber, setGstNumber] = useState("");
@@ -306,10 +327,11 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border">
               <div>
                 <p className="font-medium text-foreground">Database Backup</p>
-                <p className="text-sm text-muted-foreground">Export all inventory and movement data</p>
+                <p className="text-sm text-muted-foreground">Download all inventory and stock movement history as a ZIP of CSV files</p>
               </div>
-              <Button variant="outline" className="shrink-0" onClick={() => toast({ title: "Backup started. This may take a moment." })}>
-                <HardDriveDownload className="mr-2 h-4 w-4" />Download CSV
+              <Button variant="outline" className="shrink-0" disabled={isBackingUp} onClick={handleBackup}>
+                {isBackingUp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HardDriveDownload className="mr-2 h-4 w-4" />}
+                {isBackingUp ? "Preparing…" : "Download Backup"}
               </Button>
             </div>
           </CardContent>

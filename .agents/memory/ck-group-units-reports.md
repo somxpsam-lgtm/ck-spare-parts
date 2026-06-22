@@ -18,3 +18,8 @@ Totals that sum quantities **across different parts** must NOT get a unit label 
 `reports.tsx` `handleExportPDF` builds an HTML string by interpolation and renders it via `window.open` + `document.write`. Any user-controlled field (part name, category, location, unit) **must** be passed through the local `escapeHtml` helper before interpolation. The CSV path has its own quote-escaping; the HTML path needs `escapeHtml`.
 
 **Why:** these are stored free-text fields; unescaped they execute as HTML/JS in the print window.
+
+# CSV/spreadsheet exports must guard formula injection
+Any CSV export of user-entered text (settings "Database Backup" ZIP in `artifacts/ck-group/src/lib/backup.ts`, reports CSV) must neutralize cells whose value starts with `= + - @` (or leading tab/CR) by prefixing a `'` — otherwise they execute as formulas when opened in Excel/Sheets. RFC-4180 quote-escaping alone does NOT stop this. Guard only string cells; leave real numbers untouched.
+
+**Why:** part name/notes/whereUsed/location etc. are stored free-text; a malicious or accidental `=...` cell becomes an executable formula in the spreadsheet app.
