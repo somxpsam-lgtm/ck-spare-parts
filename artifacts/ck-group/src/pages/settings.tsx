@@ -34,7 +34,7 @@ export default function SettingsPage() {
       const { parts, movements } = await downloadBackup();
       toast({
         title: "Backup downloaded",
-        description: `${parts} parts and ${movements} stock movements saved to a ZIP file.`,
+        description: `${parts} parts and ${movements} stock movements saved to an Excel file.`,
       });
     } catch {
       toast({
@@ -327,11 +327,11 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border">
               <div>
                 <p className="font-medium text-foreground">Database Backup</p>
-                <p className="text-sm text-muted-foreground">Download all inventory and stock movement history as a ZIP of CSV files</p>
+                <p className="text-sm text-muted-foreground">Download all inventory and stock movement history as one Excel file (2 tabs)</p>
               </div>
               <Button variant="outline" className="shrink-0" disabled={isBackingUp} onClick={handleBackup}>
                 {isBackingUp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HardDriveDownload className="mr-2 h-4 w-4" />}
-                {isBackingUp ? "Preparing…" : "Download Backup"}
+                {isBackingUp ? "Preparing…" : "Download Excel"}
               </Button>
             </div>
           </CardContent>

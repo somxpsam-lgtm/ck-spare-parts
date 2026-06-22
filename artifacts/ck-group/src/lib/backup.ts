@@ -1,23 +1,5 @@
-import JSZip from "jszip";
+import type ExcelJSNS from "exceljs";
 import { listParts, listStockMovements } from "@workspace/api-client-react";
-
-function csvCell(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  let s = String(value);
-  // Neutralize spreadsheet formula injection: a user-entered value starting with
-  // = + - @ (or a leading tab/CR) can execute as a formula in Excel/Sheets.
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-  // RFC-4180 quoting.
-  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-function toCsv(headers: string[], rows: unknown[][]): string {
-  const lines = [headers.map(csvCell).join(",")];
-  for (const row of rows) lines.push(row.map(csvCell).join(","));
-  // Leading BOM so Excel opens UTF-8 correctly.
-  return "\uFEFF" + lines.join("\r\n");
-}
 
 function fmtDateTime(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -33,60 +15,120 @@ const movementTypeLabel: Record<string, string> = {
   adjustment: "Adjustment",
 };
 
+const HEADER_FILL = "FF1B2A3F";
+
+function styleHeader(ws: ExcelJSNS.Worksheet) {
+  const header = ws.getRow(1);
+  header.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
+  header.alignment = { vertical: "middle" };
+  header.height = 20;
+}
+
 export interface BackupResult {
   parts: number;
   movements: number;
 }
 
 // Fetches the full inventory (including soft-deleted parts) and the complete stock
-// movement history, then triggers a download of a ZIP containing two CSV files.
+// movement history, then downloads a single .xlsx workbook with one tab each.
 export async function downloadBackup(): Promise<BackupResult> {
-  const [parts, movements] = await Promise.all([
+  // Load ExcelJS lazily (~2MB) so it isn't pulled into the main app bundle.
+  const [parts, movements, ExcelJSMod] = await Promise.all([
     listParts({ includeDeleted: true }),
     listStockMovements({ limit: 1_000_000 }),
+    import("exceljs"),
   ]);
+  const ExcelJS = ExcelJSMod.default;
 
-  const inventoryCsv = toCsv(
-    [
-      "ID", "Name", "Model Number", "Category", "Condition", "Location",
-      "Quantity", "Unit", "Unit Price", "Total Value", "Low Stock Threshold",
-      "Status", "Image URLs", "Created At", "Last Updated",
-    ],
-    parts.map((p) => [
-      p.id, p.name, p.modelNumber, p.category, p.condition, p.location ?? "",
-      p.quantity, p.unit, p.unitPrice, p.totalValue, p.lowStockThreshold,
-      p.deletedAt ? "Deleted" : "Active",
-      (p.imageUrls ?? []).join(" | "),
-      fmtDateTime(p.createdAt), fmtDateTime(p.updatedAt),
-    ]),
-  );
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "CK Group";
+  wb.created = new Date();
 
-  const movementsCsv = toCsv(
-    [
-      "ID", "Part Name", "Part ID", "Type", "Quantity", "Unit",
-      "Where Used", "Notes", "Entry Date", "Recorded At",
-    ],
-    movements.map((m) => [
-      m.id, m.partName ?? `Part #${m.partId}`, m.partId,
-      movementTypeLabel[m.type] ?? m.type, m.quantity, m.partUnit ?? "",
-      m.whereUsed ?? "", m.notes ?? "", m.date ?? "", fmtDateTime(m.createdAt),
-    ]),
-  );
+  const inv = wb.addWorksheet("Inventory", { views: [{ state: "frozen", ySplit: 1 }] });
+  inv.columns = [
+    { header: "ID", key: "id", width: 6 },
+    { header: "Name", key: "name", width: 28 },
+    { header: "Model Number", key: "model", width: 18 },
+    { header: "Category", key: "category", width: 16 },
+    { header: "Condition", key: "condition", width: 12 },
+    { header: "Location", key: "location", width: 16 },
+    { header: "Quantity", key: "quantity", width: 10 },
+    { header: "Unit", key: "unit", width: 10 },
+    { header: "Unit Price", key: "unitPrice", width: 12 },
+    { header: "Total Value", key: "totalValue", width: 14 },
+    { header: "Low Stock Threshold", key: "lowStock", width: 18 },
+    { header: "Status", key: "status", width: 10 },
+    { header: "Image URLs", key: "images", width: 40 },
+    { header: "Created At", key: "createdAt", width: 18 },
+    { header: "Last Updated", key: "updatedAt", width: 18 },
+  ];
+  for (const p of parts) {
+    inv.addRow({
+      id: p.id,
+      name: p.name,
+      model: p.modelNumber,
+      category: p.category,
+      condition: p.condition,
+      location: p.location ?? "",
+      quantity: p.quantity,
+      unit: p.unit,
+      unitPrice: p.unitPrice,
+      totalValue: p.totalValue,
+      lowStock: p.lowStockThreshold,
+      status: p.deletedAt ? "Deleted" : "Active",
+      images: (p.imageUrls ?? []).join(" | "),
+      createdAt: fmtDateTime(p.createdAt),
+      updatedAt: fmtDateTime(p.updatedAt),
+    });
+  }
+
+  const mv = wb.addWorksheet("Stock Movements", { views: [{ state: "frozen", ySplit: 1 }] });
+  mv.columns = [
+    { header: "ID", key: "id", width: 6 },
+    { header: "Part Name", key: "partName", width: 28 },
+    { header: "Part ID", key: "partId", width: 8 },
+    { header: "Type", key: "type", width: 14 },
+    { header: "Quantity", key: "quantity", width: 10 },
+    { header: "Unit", key: "unit", width: 10 },
+    { header: "Where Used", key: "whereUsed", width: 24 },
+    { header: "Notes", key: "notes", width: 30 },
+    { header: "Entry Date", key: "date", width: 14 },
+    { header: "Recorded At", key: "recordedAt", width: 18 },
+  ];
+  for (const m of movements) {
+    mv.addRow({
+      id: m.id,
+      partName: m.partName ?? `Part #${m.partId}`,
+      partId: m.partId,
+      type: movementTypeLabel[m.type] ?? m.type,
+      quantity: m.quantity,
+      unit: m.partUnit ?? "",
+      whereUsed: m.whereUsed ?? "",
+      notes: m.notes ?? "",
+      date: m.date ?? "",
+      recordedAt: fmtDateTime(m.createdAt),
+    });
+  }
+
+  styleHeader(inv);
+  styleHeader(mv);
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
 
   const stamp = new Date().toISOString().slice(0, 10);
-  const zip = new JSZip();
-  zip.file(`inventory_${stamp}.csv`, inventoryCsv);
-  zip.file(`stock_movements_${stamp}.csv`, movementsCsv);
-  const blob = await zip.generateAsync({ type: "blob" });
-
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `ck-group-backup-${stamp}.zip`;
+  a.download = `ck-group-backup-${stamp}.xlsx`;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // Delay revocation so mobile WebView download wrappers can finish reading the blob.
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 
   return { parts: parts.length, movements: movements.length };
 }
