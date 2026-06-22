@@ -11,6 +11,7 @@ import { Package, TrendingDown, TrendingUp, AlertTriangle, BoxSelect, History, I
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getLowStockAlerts, onPrefsChanged } from "@/lib/prefs";
+import { useLocation } from "wouter";
 import { format } from "date-fns";
 import type { DashboardSummary, ActivityItem } from "@workspace/api-client-react";
 import {
@@ -49,6 +50,8 @@ export default function DashboardPage() {
 
   const formatCurrency = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
+  const [, setLocation] = useLocation();
+
   const [showAlerts, setShowAlerts] = React.useState(getLowStockAlerts());
   React.useEffect(() => onPrefsChanged(() => setShowAlerts(getLowStockAlerts())), []);
 
@@ -71,13 +74,13 @@ export default function DashboardPage() {
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Parts" value={summary?.totalParts} icon={<Package className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} />
-          <StatCard title="Total Value" value={summary ? formatCurrency(summary.totalValue) : undefined} icon={<IndianRupee className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} />
-          <StatCard title="Monthly Expense" value={summary ? formatCurrency(summary.monthlyExpense) : undefined} icon={<TrendingDown className="h-4 w-4 text-destructive" />} isLoading={isLoadingSummary} />
-          <StatCard title="Monthly Purchase" value={summary ? formatCurrency(summary.monthlyPurchaseValue) : undefined} icon={<TrendingUp className="h-4 w-4 text-emerald-500" />} isLoading={isLoadingSummary} />
-          <StatCard title="Out of Stock" value={summary?.outOfStockCount} icon={<BoxSelect className="h-4 w-4 text-destructive" />} isLoading={isLoadingSummary} />
-          <StatCard title="Low Stock" value={summary?.lowStockCount} icon={<AlertTriangle className="h-4 w-4 text-amber-500" />} isLoading={isLoadingSummary} />
-          <StatCard title="Categories" value={summary?.totalCategories} icon={<BoxSelect className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} />
+          <StatCard title="Total Parts" value={summary?.totalParts} icon={<Package className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} onClick={() => setLocation("/parts")} />
+          <StatCard title="Total Value" value={summary ? formatCurrency(summary.totalValue) : undefined} icon={<IndianRupee className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} onClick={() => setLocation("/reports")} />
+          <StatCard title="Monthly Expense" value={summary ? formatCurrency(summary.monthlyExpense) : undefined} icon={<TrendingDown className="h-4 w-4 text-destructive" />} isLoading={isLoadingSummary} onClick={() => setLocation("/reports")} />
+          <StatCard title="Monthly Purchase" value={summary ? formatCurrency(summary.monthlyPurchaseValue) : undefined} icon={<TrendingUp className="h-4 w-4 text-emerald-500" />} isLoading={isLoadingSummary} onClick={() => setLocation("/reports")} />
+          <StatCard title="Out of Stock" value={summary?.outOfStockCount} icon={<BoxSelect className="h-4 w-4 text-destructive" />} isLoading={isLoadingSummary} onClick={() => setLocation("/parts?status=out")} />
+          <StatCard title="Low Stock" value={summary?.lowStockCount} icon={<AlertTriangle className="h-4 w-4 text-amber-500" />} isLoading={isLoadingSummary} onClick={() => setLocation("/parts?status=low")} />
+          <StatCard title="Categories" value={summary?.totalCategories} icon={<BoxSelect className="h-4 w-4 text-muted-foreground" />} isLoading={isLoadingSummary} onClick={() => setLocation("/categories")} />
         </div>
 
         {/* ── TREND GRAPH (new) ─────────────────────────────────────── */}
@@ -191,9 +194,15 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, icon, isLoading }: { title: string; value?: string | number; icon: React.ReactNode; isLoading: boolean }) {
+function StatCard({ title, value, icon, isLoading, onClick }: { title: string; value?: string | number; icon: React.ReactNode; isLoading: boolean; onClick?: () => void }) {
   return (
-    <Card>
+    <Card
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+      className={onClick ? "cursor-pointer transition-colors hover:bg-accent/50 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" : undefined}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         {icon}

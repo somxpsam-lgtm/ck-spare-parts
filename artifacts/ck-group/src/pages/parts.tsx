@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { Plus, Search, Image as ImageIcon, Trash2, RotateCcw, Edit, MoreVertical } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,11 +24,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatQuantity } from "@/lib/quantity";
 
 export default function PartsPage() {
+  const searchParams = useSearch();
+  const initialStockStatus = (() => {
+    const s = new URLSearchParams(searchParams).get("status");
+    return s === "ok" || s === "low" || s === "out" ? s : "all";
+  })();
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [condition, setCondition] = useState<string>("all");
-  const [stockStatus, setStockStatus] = useState<string>("all");
+  const [stockStatus, setStockStatus] = useState<string>(initialStockStatus);
   const [includeDeleted, setIncludeDeleted] = useState(false);
+
+  // Keep the stock-status filter in sync when only the URL query changes
+  // (e.g. switching between Low/Out cards or browser back/forward while the
+  // Parts page stays mounted). Manual Select changes don't touch the URL, so
+  // this effect won't clobber them.
+  React.useEffect(() => {
+    const s = new URLSearchParams(searchParams).get("status");
+    setStockStatus(s === "ok" || s === "low" || s === "out" ? s : "all");
+  }, [searchParams]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
