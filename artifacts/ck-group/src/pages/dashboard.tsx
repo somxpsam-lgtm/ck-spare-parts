@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, TrendingDown, TrendingUp, AlertTriangle, BoxSelect, History, IndianRupee, BarChart2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getLowStockAlerts, onPrefsChanged } from "@/lib/prefs";
 import { format } from "date-fns";
 import type { DashboardSummary, ActivityItem } from "@workspace/api-client-react";
 import {
@@ -48,6 +49,9 @@ export default function DashboardPage() {
 
   const formatCurrency = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
+  const [showAlerts, setShowAlerts] = React.useState(getLowStockAlerts());
+  React.useEffect(() => onPrefsChanged(() => setShowAlerts(getLowStockAlerts())), []);
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -56,7 +60,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mt-1">Overview of your spare parts inventory</p>
         </div>
 
-        {summary?.lowStockCount ? (
+        {showAlerts && summary?.lowStockCount ? (
           <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Low Stock Warning</AlertTitle>

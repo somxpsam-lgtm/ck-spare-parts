@@ -12,6 +12,7 @@ import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey } from "@work
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 import { downloadBackup } from "@/lib/backup";
+import { getTheme, setTheme, getLowStockAlerts, setLowStockAlerts } from "@/lib/prefs";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -51,6 +52,10 @@ export default function SettingsPage() {
   const [gstNumber, setGstNumber] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+
+  // UI preferences (persisted per-device in localStorage).
+  const [darkMode, setDarkMode] = useState(getTheme() === "dark");
+  const [lowStockAlerts, setLowStockAlertsState] = useState(getLowStockAlerts());
 
   useEffect(() => {
     if (!settings) return;
@@ -135,8 +140,14 @@ export default function SettingsPage() {
     persist({ logoUrl: "" }, "Logo removed");
   };
 
-  const handleThemeToggle = () => {
-    document.documentElement.classList.toggle("dark");
+  const handleThemeToggle = (checked: boolean) => {
+    setDarkMode(checked);
+    setTheme(checked ? "dark" : "light");
+  };
+
+  const handleAlertsToggle = (checked: boolean) => {
+    setLowStockAlertsState(checked);
+    setLowStockAlerts(checked);
   };
 
   return (
@@ -303,7 +314,7 @@ export default function SettingsPage() {
                 <Label className="text-base">Dark Mode</Label>
                 <p className="text-sm text-muted-foreground">Toggle between light and dark interface</p>
               </div>
-              <Switch id="dark-mode" defaultChecked onCheckedChange={handleThemeToggle} />
+              <Switch id="dark-mode" checked={darkMode} onCheckedChange={handleThemeToggle} />
             </div>
             <Separator className="bg-border" />
             <div className="flex items-center justify-between">
@@ -311,7 +322,7 @@ export default function SettingsPage() {
                 <Label className="text-base">Low Stock Alerts</Label>
                 <p className="text-sm text-muted-foreground">Show warnings on dashboard</p>
               </div>
-              <Switch id="alerts" defaultChecked />
+              <Switch id="alerts" checked={lowStockAlerts} onCheckedChange={handleAlertsToggle} />
             </div>
           </CardContent>
         </Card>
